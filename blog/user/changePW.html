@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset="utf-8">
+	    <title>修改密码</title>
+	    <meta name="renderer" content="webkit">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	
+	    <link rel="stylesheet" href="../plugins/layui/css/layui.css">
+	</head>		
+	<body>
+	        <form class="layui-form" action="" >
+	        	<input type="hidden" id="userId" name="userId" value="" />
+	
+	            <div class="layui-form-item" style="padding-top: 30px">
+	                <label class="layui-form-label">旧密码：</label>
+	                <div class="layui-input-inline">
+	                    <input type="text" name="oldPassword" id="oldPassword" lay-verify="required"
+	                           placeholder="请输入您的旧密码" autocomplete="off" class="layui-input">
+	                    <span id="oldPasswordHint"></span>       
+	                </div>
+	                
+	            </div>
+	            
+	            <div class="layui-form-item" style="padding-top: 20px">
+	                <label class="layui-form-label" >新密码：</label>
+	                <div class="layui-input-inline">
+	                    <input type="password" name="password" id="password" lay-verify="required"
+	                           placeholder="请输入新密码" autocomplete="off" class="layui-input">
+	                </div>
+	            </div>
+	            
+	            <div class="layui-form-item" style="padding-top: 20px;padding-bottom: 20px">
+	                <label class="layui-form-label" >确认密码：</label>
+	                <div class="layui-input-inline">
+	                    <input type="password" name="password2" id="password2" lay-verify="required"
+	                           placeholder="请输入新密码" autocomplete="off" class="layui-input">
+	                    <span id="passwordHint"></span>          
+	                </div>
+	
+	            </div>
+	
+	
+	            <div class="layui-form-item">
+	                <div class="layui-input-block">
+	                    <button type="submit" class="layui-btn layui-btn-normal" id="subBtn"  lay-submit lay-filter="changePWForm">确认修改</button>
+	                    <button type="reset" class="layui-btn layui-btn-warm">重置</button>
+	                </div>
+	            </div>
+	        </form>
+	  
+	</body>
+	<!-- 只是引入layUI核心js  单模块加载 -->
+<script src="../plugins/layui/layui.js"></script>
+<script type="text/javascript" src="../js/common.js" ></script>
+<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+
+<script type="text/javascript">
+	 layui.use(['layer', 'form', 'jquery'], function () {
+        var layer = layui.layer;
+        var form = layui.form;
+        var $ = layui.$;
+		var $subBtn = $('#subBtn');
+        var $userId = $('#userId');
+        $userId.text(sessionStorage.getItem("userId"));
+        
+        $('#password2').on('blur',function(){
+        	var password1 =  $('#password').val();
+        	var password2 =  $('#password2').val();
+			var $passwordHint = $('#passwordHint'); 
+        	        			
+			if(password1 == password2){
+				var $i1= $('<i class="layui-icon layui-icon-face-smile" style="font-size: 20px; color: #5FB878;">'+'验证成功</i>');
+				$passwordHint.html($i1);
+				flag1 = true;
+				if(flag1 && flag2){
+					$subBtn.removeClass("layui-btn-disabled");
+				}			
+			}else{
+				var $i2= $('<i class="layui-icon layui-icon-face-cry" style="font-size: 20px; color: #FF5722 ;">'+'两次输入的密码不同'+'</i>');
+				$passwordHint.html($i2);
+				$subBtn.addClass("layui-btn-disabled");
+				flag1 = false;
+			}
+        	
+        });
+        var userId = sessionStorage.getItem("userId");
+        
+        $('#oldPassword').on('blur',function(){
+        	var oldPassword =  $('#oldPassword').val();
+			var $oldPasswordHint = $('#oldPasswordHint'); 
+			if(oldPassword != null && oldPassword != '' )
+        	$.ajax({
+        		type:"get",
+        		url:localhost+'userCtl/verifyOldPW' ,
+        		data:{
+        			userId:userId,
+        			oldPassword:oldPassword
+        		},
+        		async:true,
+        		dataType:"json",
+        		success:function(res){	        			
+        			if(res.code == 0){
+        				var $i1= $('<i class="layui-icon layui-icon-face-smile" style="font-size: 20px; color: #5FB878;">'+'旧密码验证成功</i>');
+        				$oldPasswordHint.html($i1);	
+        				flag2 = true;
+        				if(flag1 && flag2){
+							$subBtn.removeClass("layui-btn-disabled");
+						}
+        			}else{
+        				var $i2= $('<i class="layui-icon layui-icon-face-cry" style="font-size: 20px; color: #FF5722 ;">'+'旧密码输入错误'+'</i>');
+        				$oldPasswordHint.html($i2);
+        				$subBtn.addClass("layui-btn-disabled");
+        				flag2 = false;
+        			}
+        		},        		
+        	});
+        });
+        
+        form.on('submit(changePWForm)', function(data){
+            //异步提交
+            $.post(localhost+"userCtl/changePW",$(data.form).serialize(),function (res) {
+            	console.log(res);
+            	
+               if(res.code == 0){
+                   layer.msg('修改密码成功',{icon:1,time:1000},function(){
+                   	
+                   	//当你在iframe页面关闭自身时
+                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                        parent.layer.close(index); //再执行关闭
+                        parent.tools.reloadTable();
+                        
+                   });
+               }else{
+                   layer.msg('系统错误，修改密码失败',{icon:2,time:1000})
+               }
+            }, "json");
+
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+        
+        
+	})
+
+</script>
+</html>

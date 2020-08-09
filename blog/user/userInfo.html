@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>设置我的资料</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="../plugins/layuiadmin/layui/css/layui.css" media="all">
+  
+</head>
+<body>       
+    <form class="layui-form" action="" >
+    	<input type="hidden" id="id" name="id" value="" />
+      <div class="layui-form-item">
+        <label class="layui-form-label">用户名</label>
+        <div class="layui-input-inline">
+          <input type="text" id="userName" name="userName" value="" readonly class="layui-input" >
+        </div>
+        <div class="layui-form-mid layui-word-aux">不可修改</div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">昵称</label>
+        <div class="layui-input-inline">
+          <input type="text" id="nickname" name="nickname" value="" lay-verify="nickname" autocomplete="off" placeholder="请输入昵称" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">性别</label>
+        <div class="layui-input-block">
+          <input type="radio" name="sex" value="男" title="男">
+          <input type="radio" name="sex" value="女" title="女">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">头像</label>
+        <div class="layui-input-inline">
+          <img class="layui-nav-img" id="userImg" src="" style="width:100px; height:100px;"/>
+          <a href="javaScript:void(0)" class="uploadBtn layui-btn layui-btn-normal">更换图像</a>
+        </div>
+     </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">手机</label>
+        <div class="layui-input-inline">
+          <input type="text" name="phoneNum" id="phoneNum" value="" lay-verify="phone" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">地址</label>
+        <div class="layui-input-inline">
+          <input type="text" name="address" id="address" value="" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">身份</label>
+        <div class="layui-input-inline">
+          <input type="text" name="identity" id="identity" value="" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">简介</label>
+        <div class="layui-input-block">
+          <textarea name="synopsis" id="synopsis" placeholder="请输入内容" class="layui-textarea"></textarea>
+        </div>
+      </div>
+      <div class="layui-form-item">
+	        <label class="layui-form-label">个人标签：</label>
+	        <fieldset id="tag">
+	        	<legend>个人标签：</legend>
+	        </fieldset>
+	    </div>
+      <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="submit" class="layui-btn layui-btn-normal" id="regBtn"  lay-submit lay-filter="userInfoForm">确定修改</button>
+            <button type="button" class="layui-btn layui-btn-warm" id="resetBtn">重置</button>
+        </div>
+      </div>
+    </form>
+</body>
+</html>
+
+  <script src="../plugins/layui/layui.js"></script>  
+  <script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+  <script src="../plugins/layuiadmin/layui/layui.js"></script>  
+  <script type="text/javascript" src="../js/common.js" ></script>
+  <script type="text/javascript" src="../js/requestParam.js" ></script>
+  <script>
+  	  layui.config({
+	    base: '../plugins/layuiadmin/' //静态资源所在路径
+	  }).extend({
+	    index: 'lib/index' //主入口模块
+	  }).use(['index', 'set']);
+
+	  layui.use(['layer','form','jquery','element','upload'], function(){
+        //单模块加载组件
+        var layer = layui.layer;
+        var form = layui.form;
+        var $ = layui.jquery;
+        var element = layui.element;
+        var upload = layui.upload;
+        
+        $userId = $('#id');
+        $userName = $('#userName');
+				$nickname = $('#nickname');
+				$address = $('#address');
+				$phoneNum = $('#phoneNum');
+				$identity = $('#identity');
+				$sex = $('[name="sex"]');
+				$synopsis = $('#synopsis');
+				$userImg = $('#userImg');
+				$resetBtn = $('#resetBtn');
+				$submitBtn = $('#submitBtn');
+				$tag = $('#tag');
+		
+		
+		$resetBtn.click(function(){
+			location.reload();
+		})
+		
+		var userId = sessionStorage.getItem("userId");
+		
+		$.post(localhost+'userCtl/findAllTag',function(data){
+			for(var i=0;i<data.length;i++){
+				var $ch = $('<input type="checkbox" name="tag" value="'+ data[i].tag +'" title="'+ data[i].tag +'">');
+				$tag.append($ch);
+			}
+			
+			$tagList = $('input[name="tag"]');
+			$.post(localhost+'userCtl/findUserInfo?userId='+userId,function (res) {
+	        	$userName.val(res.user_name);
+	        	$nickname.val(res.nickname);
+	        	$address.val(res.address);
+	        	$phoneNum.val(res.phone_num);
+	        	$identity.val(res.identity);
+	        	$synopsis.val(res.synopsis);
+	        	$userId.val(res.id);
+	        	$userImg.attr('src',cosPath + res.user_name + '//' +res.img);
+	        	
+	        	for(var i = 0;i<$sex.length;i++){
+	        		if(res.sex == $sex[i].value){
+	        			$($sex[i]).attr("checked",true);
+	        		}
+	        	}
+	        	
+	        	if(res.tagList != null)
+	        	for(var i = 0;i<res.tagList.length;i++){
+	        		for(var j = 0;j<$tagList.length;j++){
+	        			if(res.tagList[i] == $tagList[j].value){
+	        				$($tagList[j]).attr("checked",true);
+	        			}
+	        		}
+		        }
+        	
+	        	form.render(); 
+	        }, "json");
+		})
+		
+		
+        
+
+        form.on('submit(userInfoForm)', function(data){
+        	console.log($(data.form).serialize());
+        	var formData = data.field;
+        	
+        	var tagList = [];
+        	$('input[type=checkbox]:checked').each(function(){
+        		tagList.push($(this).val());
+        	})
+        	tagList = tagList.join(',');
+        	formData.tag = tagList;
+       
+        	
+					$.post(localhost+'userCtl/updateUserInfo?userId='+userId
+						,formData
+						,function (res) {
+			        	if(res.code == 0){
+		                    layer.msg('更新成功',{icon:1,time:1000},function(){                       
+		//                      location.reload();
+														sessionStorage.setItem("userNickName",res.user.nickname);
+		                    });
+		                }
+		                else{
+		                    layer.msg('更新失败',{icon:2,time:1000})
+		                }
+			        }, "json");
+
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+        
+      //执行实例，文件上传
+	    var uploadInst = upload.render({
+	        elem: '.uploadBtn' //绑定上传图片按钮
+	        ,url: localhost+'fileCtl/uploadUserImg?id='+sessionStorage.getItem("userId")+'&userName='+sessionStorage.getItem("userNameKey") 
+	        ,accept: 'images'  //允许上传的文件类型
+	        ,acceptMime: 'image/*'
+	        ,xhrFields:{withCredentials:true}
+	        ,crossDomain:true
+	        ,done: function(res){
+	            //上传完毕回调
+	            if(res.code == 0){
+	                layer.msg("上传成功",{icon:1},function () {
+	                	sessionStorage.setItem("userImg",res.userImg);
+	                    location.reload();
+	                });
+	            }else{
+	                layer.msg("上传失败",{icon:2});
+	            }
+	        }
+	    });
+
+        
+    });
+	  
+
+  </script>

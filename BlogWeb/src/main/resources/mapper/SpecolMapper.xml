@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace 指向对应接口的类路径
+ -->
+<mapper namespace="com.example.blog.mapper.SpecolMapper">
+    <select id="findSpecolList" parameterType="int" resultType="map">
+        select * from t_specol
+        where user_id = #{userId}
+    </select>
+
+    <select id="findSpecolInfoList" parameterType="map" resultType="map">
+        select ts.id,ts.user_id,ts.spe_col,ts.create_time,ts.introduction,
+        count(ta.id) artNum,ifnull(SUM(ta.likes),0) likeNum,ifnull(SUM(ta.collect),0) collectNum,ifnull(SUM(ta.page_view),0) viewNum,ifnull(SUM(ta.comment_num),0)commentNum
+        from t_specol ts
+        left join t_specol_rel tsr
+        on ts.id=tsr.spe_id
+        left join t_article ta
+        on ta.id = tsr.art_id
+        where ts.user_id = #{userId}
+        group by ts.id
+        order by ts.id
+        limit #{start},#{limit}
+    </select>
+
+    <select id="findSpecolInfoListCount" parameterType="map" resultType="int">
+        select count(*)
+        from (select ts.id,ts.user_id,ts.spe_col,ts.create_time,ts.introduction,
+        count(ta.id) artNum,ifnull(SUM(ta.likes),0) likeNum,ifnull(SUM(ta.collect),0) collectNum,
+        ifnull(SUM(ta.page_view),0) viewNum,ifnull(SUM(ta.comment_num),0) commentNum
+        from t_specol ts
+        left join t_specol_rel tsr
+        on ts.id=tsr.spe_id
+        left join t_article ta
+        on ta.id = tsr.art_id
+        where ts.user_id = #{userId}
+        group by ts.id
+        order by ts.id) A
+    </select>
+
+    <insert id="addSpecol" parameterType="map">
+        insert into
+        t_specol(user_id,spe_col,create_time,introduction)
+        values (#{userId},#{specolName},now(),#{sort})
+    </insert>
+
+    <select id="findSpecol" parameterType="int" resultType="map">
+        select *
+        from t_specol
+        where id = #{specolId}
+    </select>
+
+    <update id="updateSpecol" parameterType="map">
+        update t_specol
+        set spe_col=#{specolName},introduction=#{sort}
+        where id=#{specolId}
+    </update>
+
+    <delete id="batchDel">
+        delete from t_specol
+        where id in
+        <foreach collection="array" item="ids" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+
+    <delete id="batchDelRel">
+        delete from t_specol_rel
+        where spe_id in
+        <foreach collection="array" item="ids" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+
+</mapper>

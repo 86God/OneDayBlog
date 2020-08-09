@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>个人主页</title>
+		<meta name="renderer" content="webkit">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<link rel="stylesheet" href="../plugins/layuiadmin/layui/css/layui.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/admin.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/template.css" media="all">
+	</head>
+
+	<body>
+		<div class="layui-fluid layadmin-homepage-fluid">
+			<div class="layui-row layui-col-space8">
+				<div class="layui-col-md2">
+					<div class="layadmin-homepage-panel layadmin-homepage-shadow">
+						<div class="layui-card text-center">
+							<div class="layui-card-body">
+								<div class="layadmin-homepage-pad-ver">
+									<img class="layadmin-homepage-pad-img" id="userImg" src="" width="96" height="96">
+								</div>
+								<h4 class="layadmin-homepage-font" id="userNickName"></h4>
+								<p class="layadmin-homepage-min-font" id="userIdentity"></p>
+								<div class="layadmin-homepage-pad-ver">
+									<a href="javascript:;" class="layui-icon layui-icon-cellphone"></a>
+									<a href="javascript:;" class="layui-icon layui-icon-vercode"></a>
+									<a href="javascript:;" class="layui-icon layui-icon-login-wechat"></a>
+									<a href="javascript:;" class="layui-icon layui-icon-login-qq"></a>
+								</div>
+
+							</div>
+						</div>
+						<p class="layadmin-homepage-about">
+							关于我
+						</p>
+						<ul class="layadmin-homepage-list-group">
+							<li class="list-group-item"><i class="layui-icon layui-icon-location" id="userAddress"></i></li>
+
+						</ul>
+						<div class="layadmin-homepage-pad-hor">
+							<mdall id="userSynopsis"></mdall>
+						</div>
+						<p class="layadmin-homepage-about">
+							技能
+						</p>
+						<ul class="layadmin-homepage-list-inline" id="userTag">
+							
+						</ul>
+					</div>
+				</div>
+				<div class="layui-col-md10">
+					<div class="layui-fluid layadmin-homepage-content">
+						<div class="layui-row  layadmin-homepage-padding15">
+							<hr class="new-section-xs"></hr>
+							<div class="layui-col-md7 layadmin-homepage-padding8">
+								<div class="layui-row layadmin-homepage-text-center">
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userAttention"></p>
+										<mdall>关注</mdall>
+									</div>
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userCollect"></p>
+										<mdall>收藏</mdall>
+									</div>
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userHeat"></p>
+										<mdall>热度</mdall>
+									</div>
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userArticleNum"></p>
+										<mdall>帖子</mdall>
+									</div>
+								</div>
+							</div>
+							<!-- 关注 -->
+							<div class="layui-col-md5" id="contact">
+								
+							</div>
+						</div>
+						<div class="layui-row layui-col-space20 layadmin-homepage-list-imgtxt">
+							<div class="layui-col-md9">
+									<div class="layui-col-md12">
+										<div class="grid-demo" id="artListDiv">
+											<!-- 文章列表  -->																
+										</div>
+									</div>
+								</div>
+							<div class="layui-col-md3">
+								<div class="grid-demo">
+									<div class="layui-card homepage-top">
+										<div class="layui-card-header">
+											<h3 class="panel-title">
+							                    <i class="layui-icon layui-icon-fire" style="color: #FF0000;"></i>
+							                    	最近访客
+							                </h3>
+										</div>
+										<div class="layui-card-body">
+											<div class="layui-row layui-col-space15" >
+												<div class="layui-col-md12 margin-top10" id="viewDiv">
+													<a href="javascript:;" class="layui-btn layui-btn-primary" id="more">更多</a>
+												</div>
+											</div>
+											
+										</div>
+									</div>
+									<div class="layui-card homepage-bottom">
+										<div class="layui-card-header">
+											<h3 class="panel-title">
+							                    <i class="layui-icon layui-icon-user"></i>
+							                    	最新评论
+							                </h3>
+										</div>
+										<div class="layui-card-body" id="commentDiv">
+											<!-- 最新评论列表 -->
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="../plugins/layuiadmin/layui/layui.js"></script>
+		<script type="text/javascript" src="../js/common.js" ></script>
+
+		<script type="text/javascript" src="../js/requestParam.js" ></script>
+			
+		<script>
+			layui.use(['flow','layer'], function(){
+					var $ = layui.jquery; //不用额外加载jQuery，flow模块本身是有依赖jQuery的，直接用即可。
+					var layer = layui.layer;
+				    var flow = layui.flow;
+				    
+				    //获取参数
+				    var artType = request.QueryString("artType");
+				    var userId = request.QueryString("userId");
+				    
+				    
+				    var $userImg = $('#userImg');
+					var $userNickName = $('#userNickName');
+					var $userIdentity = $('#userIdentity');
+					var $userAddress = $('#userAddress');
+					var $userSynopsis = $('#userSynopsis');
+					var $userAttention = $('#userAttention');
+					var $userCollect = $('#userCollect');
+					var $userHeat = $('#userHeat');
+					var $userArticleNum = $('#userArticleNum');
+					var $userTag = $('#userTag');
+					var $contact = $('#contact');
+					
+					if(userId == null || userId == '' ){
+						userId = sessionStorage.getItem('userId');
+					}
+					if(userId == sessionStorage.getItem('userId')){
+						$contact.css('display','none');
+					}else{
+						//判断是否已经关注
+						$.ajax({
+							type:"get",
+							url:localhost+'userCtl/ifFocus?userId='+userId+'&focus='+sessionStorage.getItem("userId"),
+							async:true,
+							dataType:'json',
+							success:function(res){
+								if(res.flag == 0){
+									$contact.html('<a href="javascript:;" class="layui-btn layui-btn-primary">已关注</a>');
+								}else{
+									$contact.html('<a href="javascript:;" class="layui-btn layui-btn-normal"><i class="layui-icon layui-icon-addition"></i> 关注</a>');
+								}
+								var $a = $('#contact > a');
+								console.log($a.text());
+								$a.click(function(){
+									if($a.text() == ' 关注'){
+										$.ajax({
+											type:"get",
+											url:localhost+'userCtl/addContact?userId='+userId+'&focus='+sessionStorage.getItem("userId"),
+											async:true,
+											dataType:'json',
+											success:function(res){
+												location.reload();
+											}
+										});
+									}	
+									else{
+										$.ajax({
+											type:"get",
+											url:localhost+'userCtl/removeContact?userId='+userId+'&focus='+sessionStorage.getItem("userId"),
+											async:true,
+											dataType:'json',
+											success:function(res){
+												location.reload();
+											}
+										});
+									}
+								})
+							}
+						});
+					}
+
+									
+					//异步加载主页用户信息
+					$.ajax({
+						type:"get",
+						url:localhost+'userCtl/findUserInfo?userId='+userId,
+						async:true,
+						dataType:'json',
+						success:function(res){
+			
+							$userImg.attr('src',cosPath + res.user_name + '//' +res.img);
+							$userNickName.text(res.nickname);
+							$userIdentity.text(res.identity);
+							$userAddress.text(res.address);
+							$userSynopsis.text(res.synopsis);
+							$userAttention.text(res.attention);
+							$userCollect.text(res.collect);
+							$userHeat.text(res.heat);
+							$userArticleNum.text(res.article_num);
+							for(var i = 0;i<res.tagList.length;i++){
+								$a = $('<a href="javascript:;" class="layui-btn layui-btn-primary">' + res.tagList[i] +'</a>'); 
+								$userTag.append($a);
+							}
+						}
+					});
+					
+					$viewDiv = $('#viewDiv');
+					//异步加载访客信息
+					$.ajax({
+						type:"get",
+						url:localhost+'userCtl/findViewList?userId='+userId,
+						async:true,
+						dataType:'json',
+						success:function(res){
+							console.log(res);
+							var $div ='';
+							for(var i = 0;i<res.length;i++){
+								if(i<9){
+									$div = $('<div class="layui-col-md4"><a href="personalHomePage.html?userId='+res[i].user_id+'"><img src="'+cosPath + res[i].user_name + '/' +res[i].img +'"></a></div>');
+									console.log($div);
+								}else{
+									$div = $('<div class="layui-col-md4 project-hide"><a href="personalHomePage.html?userId='+res[i].user_id+'"><img src="'+cosPath + res[i].user_name + '//' +res[i].img +'"></a></div>');
+								}
+								$viewDiv.before($div);
+							}
+						}
+					});
+					
+					//点击更多按钮展开全部访客
+					$('#more').click(function(){
+						$(".project-hide").slideDown();
+					})
+					
+					$commentDiv = $('#commentDiv');
+					//异步加载最近评论
+					$.ajax({
+						type:"get",
+						url:localhost+'userCtl/findCommentList?userId='+userId,
+						async:true,
+						dataType:'json',
+						success:function(res){
+							console.log(res);
+							var $div ='';
+							for(var i = 0;i<res.length;i++){
+								var time = new Date(res[i].comment_time).getTime()- 8 * 60 * 60 * 1000;
+                        		var commentTime = new Date(time).toLocaleString();
+								$a = $('<a href="personalHomePage.html?userId='+res[i].userId +'" class="layadmin-privateletterlist-item">'
+									+'<div class="meida-left">'
+										+'<img src="'+ cosPath + res[i].userName +'/'+ res[i].userImg  +'">'
+									+'</div>'
+									+'<div class="meida-right">'
+										+'<p>'+ res[i].nickname +' <span>'+ commentTime +'</span></p>'
+										+'<mdall>'+res[i].content +'</mdall>'
+									+'</div>'
+								+'</a>');
+								
+								$commentDiv.append($a);
+							}
+						}
+					});
+					
+					
+				    
+				    //流加载文章列表
+				  	flow.load({
+					   	elem: '#artListDiv' //指定列表容器
+					    ,done: function(page, next){ //到达临界点（默认滚动触发），触发下一页
+					      	var lis = [];
+						    //以jQuery的Ajax请求为例，请求下一页数据（注意：page是从2开始返回）
+						    $.get(localhost+'articleCtl/findArtListByPage?pageNum='+page +'&limit=5'+'&airType='+artType+'&userId='+userId+'&isreg=1&artName=null', function(res){
+					       
+					        //假设你的列表返回在data集合中
+					        layui.each(res.data, function(index, item){
+//					        	var time = item.artRelTime;
+//                      		var artRelTime = new Date(time).toLocaleString();
+					     		console.log(item);	
+					        	$div1 = $('<div class="panel-body layadmin-homepage-shadow"></div>')
+					        	$img = $('<a href="../user/personalHomePage.html?userId='+ item.userId +'" class="media-left"><img src="'+ cosPath + item.userName +'/'+ item.userImg  +'" height="46px" width="46px"></a>');
+					        
+					        	$div1.append($img);
+					        	$div2 = $('<div class="media-body"></div>');
+					        	$div3 = $('<div class="pad-btm" style="padding-bottom: 0;"></div>');
+					        	$p1 = $('<p class="fontColor"><a href="../user/personalHomePage.html?userId='+ item.userId +'">'+ item.userNickName +'</a>创作了新的<span>文章</span></p>');
+					        	$p2 = $('<p class="min-font">'+ item.artRelTime +'</p>');
+					        	$hidden = $('<input type="hidden" name="userId" id="userId" value="'+ item.userId +'">');
+					        	$h2 = $('<h2 class="fontColor"><a href="../article/article_detail.html?artId='+ item.artId +'&userId='+item.userId+'">'+ item.artTitle +'</a></h2>');
+					        	$p3 = $('<p class="min-font" style="text-indent:30px;display: -webkit-box;-webkit-box-orient: vertical;-webkit-line-clamp: 3;overflow: hidden;"></p>');
+					        	$p3.text(item.artText.substring(0,300));
+					        	$div3.append($p1);
+					        	$div3.append($p2);
+					        	$div3.append($h2);
+					        	$div3.append($hidden);
+					        	$div3.append($p3);
+					        	$div2.append($div3);
+					        	$div1.append($div2);
+					        	
+					        	$div4=$('<div class="media-body"></div>');
+					        	$div5=$('<div class="media"></div>');
+					        	$div6=$('<div class="media-left"></div>');
+					        	$ul=$('<ul class="list-inline"></ul>');
+					        	$li1=$('<li><i class="layui-icon layui-icon-read"></i><span>浏览</span><span>'+ item.artView+'次</span></li>');
+					        	$li2=$('<li><i class="layui-icon layui-icon-praise"></i><span>点赞</span><span>'+ item.artLikes+'</span></li>');
+					        	$li3=$('<li><i class="layui-icon layui-icon-rate"></i><span>收藏</span><span>'+ item.artCollect+'</span></li>');
+					        	$li4=$('<li><i class="layui-icon layui-icon-reply-fill"></i><span>评论</span><span>'+ item.artCommentNum+'</span></li>');
+					        	
+					        	$ul.append($li1);
+					        	$ul.append($li2);
+					        	$ul.append($li3);
+					        	$ul.append($li4);
+					        	$div6.append($ul);
+					        	$div5.append($div6);
+					        	$div4.append($div5);
+					        	$div1.append($div4);
+					        	
+					        	
+					        	
+					          	lis.push($div1.get(0).outerHTML);
+					          	
+					        }); 
+					        
+					        //执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+					        //pages为Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+					        next(lis.join(''), page < res.pages);    
+					      });
+					    }
+					});
+					
+			});
+
+		</script>
+	</body>
+
+</html>

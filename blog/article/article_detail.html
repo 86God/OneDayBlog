@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>个人主页</title>
+		<meta name="renderer" content="webkit">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<link rel="stylesheet" href="../plugins/layuiadmin/layui/css/layui.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/admin.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/template.css" media="all">
+		<link rel="stylesheet" href="../plugins/editor.md/examples/css/style.css" />
+        <link rel="stylesheet" href="../plugins/editor.md/css/editormd.preview.css" />
+	</head>
+
+	<body>
+
+		<div class="layui-fluid layadmin-homepage-fluid">
+			<div class="layui-row layui-col-space8">
+				<div class="layui-col-md2">
+					<div class="layadmin-homepage-panel layadmin-homepage-shadow">
+						<div class="layui-card text-center">
+							<div class="layui-card-body">
+								<div class="layadmin-homepage-pad-ver">
+									<img class="layadmin-homepage-pad-img" id="userImg" src="" width="96" height="96">
+								</div>
+								<h4 class="layadmin-homepage-font" id="userNickName"></h4>
+								<p class="layadmin-homepage-min-font" id="userIdentity"></p>
+								<div class="layadmin-homepage-pad-ver">
+									<a href="javascript:;" class="layui-icon layui-icon-cellphone"></a>
+									<a href="javascript:;" class="layui-icon layui-icon-vercode"></a>
+									<a href="javascript:;" class="layui-icon layui-icon-login-wechat"></a>
+									<a href="javascript:;" class="layui-icon layui-icon-login-qq"></a>
+								</div>
+
+							</div>
+						</div>
+						<p class="layadmin-homepage-about">
+							关于我
+						</p>
+						<ul class="layadmin-homepage-list-group">
+							<li class="list-group-item"><i class="layui-icon layui-icon-location" id="userAddress"></i></li>
+
+						</ul>
+						<div class="layadmin-homepage-pad-hor">
+							<mdall id="userSynopsis"></mdall>
+						</div>
+						<p class="layadmin-homepage-about">
+							技能
+						</p>
+						<ul class="layadmin-homepage-list-inline" id="userTag">
+							
+						</ul>
+					</div>
+				</div>
+				<div class="layui-col-md10">
+					<div class="layui-fluid layadmin-homepage-content">
+						<div class="layui-row  layadmin-homepage-padding15">
+							<hr class="new-section-xs"></hr>
+							<div class="layui-col-md7 layadmin-homepage-padding8">
+								<div class="layui-row layadmin-homepage-text-center">
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userAttention"></p>
+										<mdall>关注</mdall>
+									</div>
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userCollect"></p>
+										<mdall>收藏</mdall>
+									</div>
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userHeat"></p>
+										<mdall>热度</mdall>
+									</div>
+									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
+										<p class="h4" id="userArticleNum"></p>
+										<mdall>帖子</mdall>
+									</div>
+								</div>
+							</div>
+							<div class="layui-col-md5" id="contact">
+								
+							</div>
+							
+							
+						</div>
+						<div style="padding: 0px 0px 30px 50px;">
+							<h1 class="" id="artTitle" style="text-align: left;font-size: 30px;"><b id="artTitle"></b></h1>
+						</div>
+						
+						<div class="layui-row layui-col-space20 layadmin-homepage-list-imgtxt">
+							<div class="layui-col-md12">
+								<div class="grid-demo">
+									<div class="panel-body layadmin-homepage-shadow">
+										<div class="media-body">
+											
+											<!--文章内容载体-->
+										    <div id="testEditorMdview">
+										        <textarea id="appendTest" style="display:none;"></textarea>
+										    </div>
+
+											<div class="media" style="background-color:#F3F7FB;padding: 20px;">
+												
+												<div class="media-left">
+													<ul class="list-inline">
+														<li>
+															<i class="layui-icon layui-icon-read"></i>
+															<span>浏览</span>
+															<span id="artPageView"></span>
+											           	</li>
+														<li>
+															<i class="layui-icon layui-icon-praise" id='likeIcon'></i>
+															<a href="javascript:;" id='likesBtn'><span>点赞</span></a>
+															<span id="artLikes"></span>
+														</li>
+														<li>
+															<i class="layui-icon layui-icon-rate"></i>
+															<a href="javascript:;" id='collectBtn'><span>收藏</span></a>
+															<span id="artCollect"></span>
+														</li>
+														<li>
+															<i class="layui-icon layui-icon-reply-fill"></i>
+															<span>评论</span>
+															<span id="artCommentNum"></span>
+														</li>
+													</ul>
+												</div>
+											</div>
+											
+
+											<div class="media-list">
+												<div class="layui-col-md12">
+													
+														<div class="layui-form-item layui-form-text">
+															<div class="layui-input-block" style="margin-left: 0;">
+																<textarea name="commentTxt" placeholder="请输入内容" id="commentTxt" class="layui-textarea"></textarea>
+															</div>
+														</div>
+	
+														<div style="overflow: hidden;">
+															<div class="layui-input-block layui-input-right" style="margin-left: 0;float: right;">
+																<button class="layui-btn" id="publish">发表</button>
+															</div>
+															
+														</div>
+													
+												</div>
+												<div>热门评论</div>
+												<!--评论列表-->
+												<div id="commentList">
+													
+												</div>
+											</div>
+											
+										</div>
+									</div>
+									
+								</div>
+							</div>
+							
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+
+        <script src="../plugins/editor.md/examples/js/jquery.min.js"></script>
+        <script src="../plugins/editor.md/lib/marked.min.js"></script>
+        <script src="../plugins/editor.md/lib/prettify.min.js"></script>
+        <script src="../plugins/editor.md/lib/raphael.min.js"></script>
+        <script src="../plugins/editor.md/lib/underscore.min.js"></script>
+        <script src="../plugins/editor.md/lib/sequence-diagram.min.js"></script>
+        <script src="../plugins/editor.md/lib/flowchart.min.js"></script>
+        <script src="../plugins/editor.md/lib/jquery.flowchart.min.js"></script>
+        <script type="text/javascript" src="../js/requestParam.js" ></script>
+        <script type="text/javascript" src="../js/common.js" ></script>
+        <script src="../plugins/layui/layui.all.js"></script>
+        <script src="../plugins/editor.md/editormd.js"></script>
+		<script type="text/javascript">
+			layui.use(['flow','layer','form','jquery','element','upload'], function(){
+		        //单模块加载组件
+		        var layer = layui.layer;
+		        var form = layui.form;
+		        var $ = layui.jquery;
+		        var element = layui.element;
+		        var upload = layui.upload;
+		        var flow = layui.flow;
+		        
+		        
+		        //获取参数
+			    var userId = request.QueryString("userId");
+			    var artId = request.QueryString("artId");
+
+			    var $userImg = $('#userImg');
+				var $userNickName = $('#userNickName');
+				var $userIdentity = $('#userIdentity');
+				var $userAddress = $('#userAddress');
+				var $userSynopsis = $('#userSynopsis');
+				var $userAttention = $('#userAttention');
+				var $userCollect = $('#userCollect');
+				var $userHeat = $('#userHeat');
+				var $userArticleNum = $('#userArticleNum');
+				var $userTag = $('#userTag');
+				var $contact = $('#contact');
+				var $title = $('#artTitle');
+				
+				if(userId == null || userId == '' ){
+					userId = sessionStorage.getItem('userId');
+				}
+				if(userId == sessionStorage.getItem('userId')){
+					$contact.html('<a id="editAtr" href="javascript:;" class="layui-btn">编辑文章</a>')
+				}else{
+					//判断是否已经关注
+					$.ajax({
+						type:"get",
+						url:localhost+'userCtl/ifFocus?userId='+userId+'&focus='+sessionStorage.getItem("userId"),
+						async:true,
+						dataType:'json',
+						success:function(res){
+							if(res.flag == 0){
+								$contact.html('<a href="javascript:;" class="layui-btn layui-btn-primary">已关注</a>');
+							}else{
+								$contact.html('<a href="javascript:;" class="layui-btn layui-btn-normal"><i class="layui-icon layui-icon-addition"></i> 关注</a>');
+							}
+							var $a = $('#contact > a');
+							console.log($a.text());
+							$a.click(function(){
+								if($a.text() == ' 关注'){
+									$.ajax({
+										type:"get",
+										url:localhost+'userCtl/addContact?userId='+userId+'&focus='+sessionStorage.getItem("userId"),
+										async:true,
+										dataType:'json',
+										success:function(res){
+											location.reload();
+										}
+									});
+								}	
+								else{
+									$.ajax({
+										type:"get",
+										url:localhost+'userCtl/removeContact?userId='+userId+'&focus='+sessionStorage.getItem("userId"),
+										async:true,
+										dataType:'json',
+										success:function(res){
+											location.reload();
+										}
+									});
+								}
+							})
+						}
+					});
+				}
+				
+				//异步加载主页用户信息
+				$.ajax({
+					type:"get",
+					url:localhost+'userCtl/findUserInfo?userId='+userId,
+					async:true,
+					dataType:'json',
+					success:function(res){
+						$userImg.attr('src',cosPath + res.user_name + '//' +res.img);
+						$userNickName.text(res.nickname);
+						$userIdentity.text(res.identity);
+						$userAddress.text(res.address);
+						$userSynopsis.text(res.synopsis);
+						$userAttention.text(res.attention);
+						$userCollect.text(res.collect);
+						$userHeat.text(res.heat);
+						$userArticleNum.text(res.article_num);
+						if(res.tagList != null)
+						for(var i = 0;i<res.tagList.length;i++){
+							$a = $('<a href="javascript:;" class="layui-btn layui-btn-primary">' + res.tagList[i] +'</a>'); 
+							$userTag.append($a);
+						}
+					}
+				});
+				
+				//点赞
+				$('#likesBtn').click(function(){
+					$.ajax({
+						type:"get",
+						url:localhost+'articleCtl/giveLike?userId='+sessionStorage.getItem("userId")+'&artId='+artId,
+						async:true,
+						dataType:'json',
+						success:function(res){
+							console.log(res);
+							$artLikes = $('#artLikes');
+							$artLikes.text(parseInt($artLikes.text())+res.like);
+							
+						}
+					});
+				});
+				
+				//收藏
+				$('#collectBtn').click(function(){
+					$.ajax({
+						type:"get",
+						url:localhost+'articleCtl/addCollect?userId='+sessionStorage.getItem("userId")+'&artId='+artId,
+						async:true,
+						dataType:'json',
+						success:function(res){
+							console.log(res);
+							$artCollect = $('#artCollect');
+							$artCollect.text(parseInt($artCollect.text())+res.collect);
+						}
+					});
+				});
+				
+				
+				//文章的信息
+				$artTitle = $('#artTitle');
+				$artPageView = $('#artPageView');
+				$artLikes = $('#artLikes');
+				$artCollect = $('#artCollect');
+				$artCommentNum = $('#artCommentNum');
+				//异步加载主页文章内容
+				$.ajax({
+					type:"get",
+					url:localhost+'articleCtl/findArtById?artId='+artId+'&userId='+sessionStorage.getItem('userId'),
+					async:true,
+					dataType:'json',
+					success:function(res){
+						if(res.editor_type == 0){
+							$("#appendTest").val(res.content);
+							editormd.markdownToHTML("testEditorMdview", {
+				                htmlDecode: "style,script,iframe", //可以过滤标签解码
+				                emoji: true,			//表情符号
+				                taskList:true,			//任务列表
+				                tex: true,               //公式 默认不解析
+				                flowChart:true,         //流程图  默认不解析
+				                sequenceDiagram:true,  //顺序图  默认不解析
+				            });
+						}else{	
+							$("#testEditorMdview").css("text-align","left");
+							$("#testEditorMdview").html(res.content);
+							
+						}
+						$artTitle.text(res.title);
+						$artPageView.text(res.page_view);
+						$artLikes.text(res.likes);
+						$artCollect.text(res.collect);
+						$artCommentNum.text(res.comment_num);
+						//配置编辑器
+						if(res.userId == sessionStorage.getItem('userId')){
+							if(res.editor_type == 0){
+								$('#editAtr').attr('href','markdownEdit.html?artId='+res.id);
+							}else if(res.editor_type == 1){
+								$('#editAtr').attr('href','ckeditor2.html?artId='+res.id);
+							}else if(res.editor_type == 2){
+								$('#editAtr').attr('href','layedit.html?artId='+res.id);
+							}else{
+								
+							}
+						}
+					}
+				});
+				
+				//发表评论
+				$('#publish').click(function(){
+					var commentTxt = $('#commentTxt').val();
+					
+					console.log(commentTxt);
+					if(commentTxt == ""){
+						layer.msg('评论不能为空',{icon:2,time:1000});
+						return false;
+					}
+					$.ajax({
+						type:"post",
+						url:localhost+'articleCtl/publishComment?userId='+sessionStorage.getItem("userId")+'&artId='+artId,
+						data:{commentTxt:commentTxt},
+						async:true,
+						dataType:'json',
+						success:function(res){
+							if(res.code == 0){
+								layer.msg('发布成功',{icon:1,time:1000},function(){         
+									$('#commentTxt').val("");
+		                     		location.reload();
+		                     		
+		                    	});
+							}else{
+								layer.msg('发布失败',{icon:2,time:1000});
+							}
+						}
+					});
+				});
+				
+				$commentList = $('#commentList');
+				//流加载评论列表
+				flow.load({
+				   	elem: '#commentList' //指定列表容器
+				    ,done: function(page, next){ //到达临界点（默认滚动触发），触发下一页
+				      	var lis = [];
+					    //以jQuery的Ajax请求为例，请求下一页数据（注意：page是从2开始返回）
+					    $.get(localhost+'articleCtl/findCommentList?pageNum='+page +'&limit=5&artId='+artId, function(res){						
+				       
+				        //假设你的列表返回在data集合中
+				        layui.each(res.data, function(index, item){
+				        	var time = new Date(item.commentTime).getTime()- 8 * 60 * 60 * 1000;
+                        	var commentTime = new Date(time).toLocaleString();
+				     		$div1 = $('<div class="layui-col-md12 layadmin-homepage-list-imgtxt message-content" style="border: 2px #EEEEEE solid; margin: 10px 0;"></div>');
+				     		$div2 = $('<div class="media-body" style="margin: 20px 0; "></div>');
+				     		$a = $('<a href="../user/personalHomePage.html?userId='+ item.userId +'" class="media-left" style="float: left;"><img src="'+ cosPath + item.userName +'/'+ item.userImg  +'" height="30px" width="30px"></a>');
+				        	$div3 = $('<div class="pad-btm"><p class="fontColor" style="float: left;text-align: left;"><a href="../user/personalHomePage.html?userId='+ item.userId +'">'+ item.nickname +'</a><span style="font-size: 10px;">'+ commentTime +'</span></p><br /></div>');
+				        	$p = $('<p class="message-text" style="clear: both;text-align: left;text-indent:30px;">'+ item.content +'</p>');
+				        	$div2.append($a);
+				        	$div2.append($div3);
+				        	$div2.append($p);
+				        	$div1.append($div2)
+				          	lis.push($div1.get(0).outerHTML);         	
+				        }); 
+				        
+				        //执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+				        //pages为Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+				        next(lis.join(''), page < res.pages);    
+				      });
+				    }
+				});
+		        
+		   });
+		</script>
+	</body>
+
+</html>

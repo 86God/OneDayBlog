@@ -1,0 +1,36 @@
+#内置服务器的配置
+server:
+  port: 9999
+
+#spring的配置（配置spring视图解析器和数据源配置）
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/db_personal_blog?characterEncoding=utf-8&serverTimezone=GMT
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    platform: mysql
+    type: com.alibaba.druid.pool.DruidDataSource
+    initialSize: 5
+    minIdle: 5
+    maxActive: 20
+
+#配置mybatis信息
+mybatis:
+  mapper-locations: classpath:mapper/*Mapper.xml             #映射文件
+  type-aliases-package: com.example.blog.bean                 #别名
+  configuration:
+    cache-enabled: true                                        #二级缓存
+    map-underscore-to-camel-case: true
+
+# 配置控制台输出sql脚本
+logging:
+  level:
+    com:
+      example:
+        blog:
+          mapper: TRACE

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" href="../plugins/layui/css/layui.css">  
+	</head>
+	<body>
+		<form class="layui-form" action="" style="padding-top: 30px">	
+			<input type="hidden" name="userId" id="userId" value="" />
+			
+		    <div class="layui-form-item" >
+		        <label class="layui-form-label" >专栏名：</label>
+		        <div class="layui-input-inline">
+		            <input type="text" name="specolName" id="specolName" value="" lay-verify="required"
+		                   autocomplete="off" class="layui-input">
+		        </div>
+		    </div>
+		    
+		    
+		    <div class="layui-form-item">
+		        <label class="layui-form-label">专栏简介：</label>
+		        <div class="layui-input-inline">
+		            <textarea name="sort" id="sort" value="" lay-verify="required"
+		                   autocomplete="off" class="layui-textarea"></textarea>       
+		        </div>
+		    </div>
+
+		
+		    <div class="layui-form-item">
+		        <div class="layui-input-block">
+		            <button type="submit" class="layui-btn layui-btn-normal" lay-submit lay-filter="editForm">添加</button>
+		            <button type="reset" class="layui-btn llayui-btn-warm">重置</button>
+		        </div>
+		    </div>
+		</form>
+	</body>
+	
+	<script src="../plugins/layui/layui.js"></script>
+	<script type="text/javascript" src="../js/common.js" ></script>
+	<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+	<script type="text/javascript" src="../js/requestParam.js" ></script>
+	<script type="text/javascript">
+	    layui.use(['layer', 'form', 'jquery','upload'], function () {
+	        var layer = layui.layer;
+	        var form = layui.form;
+	        var $ = layui.$;
+	        var upload = layui.upload;
+
+			var $userId = $('#userId');
+			var userId = sessionStorage.getItem("userId");
+			$userId.val(userId);
+	
+	        form.on('submit(editForm)', function(data){
+	            //异步提交
+	            $.post(localhost+"specolCtl/addSpecol",$(data.form).serialize(), function (res) {
+	                if(res.code == 0){
+	                    layer.msg('添加成功',{icon:1,time:1000},function(){
+	                        //当你在iframe页面关闭自身时
+	                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	                        parent.layer.close(index); //再执行关闭
+	                        parent.tools.reloadTable();
+	                    });
+	                }
+	                else{
+	                    layer.msg('添加失败',{icon:2,time:1000})
+	                }
+	            },'json');
+	
+	            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+	        });
+	        
+	        
+	        
+	    });
+	</script>
+</html>

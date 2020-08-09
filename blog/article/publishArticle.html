@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="renderer" content="webkit">
+		  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		  <link rel="stylesheet" href="../plugins/layui/css/layui.css" media="all">
+	</head>
+	<body>
+		<form class="layui-form" action="">
+
+		    <div class="layui-form-item">
+		        <label class="layui-form-label">文章类型：</label>
+		        <fieldset id="artType">
+		        	<legend>文章类型：</legend>
+		        </fieldset>
+		    </div>
+		    
+		    <div class="layui-form-item">
+			    <label class="layui-form-label">分类专栏</label>
+			    <fieldset id="specol">
+		        	<legend>我的专栏：</legend>
+		        	<a href="javascript:;" class="layui-btn" id="addSpecol">
+		        		<i class="layui-icon layui-icon-addition"></i>   
+		        		创建新专栏
+		        	</a>
+
+		        </fieldset>
+			</div>
+
+		    <div class="layui-form-item">
+		        <label class="layui-form-label">发布形式：</label>
+		        <div class="layui-input-inline">
+		            <select name="permType" lay-verify="required" id="permType">
+		                <option value="">请选择发布形式</option>
+		                <option value="1">公开</option>
+						<option value="2">私密</option>
+						<option value="3">粉丝可见</option>	
+		            </select>
+		        </div>
+		    </div>
+		
+		
+		    <div class="layui-form-item">
+		        <div class="layui-input-block">
+		            <button type="submit" class="layui-btn layui-btn-normal" lay-submit lay-filter="editForm">保存</button>
+		            <button type="reset" class="layui-btn llayui-btn-warm">重置</button>
+		        </div>
+		    </div>
+		</form>
+		<script src="../plugins/layui/layui.all.js" charset="utf-8"></script>
+		<script type="text/javascript" src="../js/common.js" ></script>
+		<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+		<script type="text/javascript" src="../js/requestParam.js" ></script>
+		<script>
+			layui.use(['layer', 'form', 'jquery','upload'], function () {
+		        var layer = layui.layer;
+		        var form = layui.form;
+		        var $ = layui.$;
+		        var upload = layui.upload;
+		        
+		        var artId = request.QueryString("artId");
+
+            	//动态加载文章类型
+            	$.post(localhost + "articleCtl/findArtTypeList",
+			        function (res) {
+			            var $artType = $('#artType');
+	            		for(var i = 0;i<res.length;i++){
+	            			var $ch = $('<input type="checkbox" name="artType" value="'+ res[i].stairName +'" title="'+ res[i].stairName +'">');
+
+	            			$artType.append($ch);
+	            			if(res[i].secId != 0){	
+	            				for(var j = 0;j<res[i].secNameList.length;j++){
+	            					var $ch2 = $('<input type="checkbox" name="artType" value="'
+	            					+ res[i].secNameList[j] +'" title="'+ res[i].secNameList[j] +'">');
+		
+	            					$artType.append($ch2);
+	            				}
+	            			}
+	            		}
+
+	            		form.render(); 
+	        	},'json');
+	        	
+	        	//添加专栏事件
+	        	$('#addSpecol').click(function(){
+	        		layer.open({
+                        type: 2,
+                        title: ['添加专栏', 'font-size:18px;'],
+                        offset: '10px',
+                        area: ['450px', '300px'],
+                        content: '../specol/addSpecol.html', //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no']
+                    	end:function(){
+                    		location.reload();
+                    	}
+	        		});
+                    
+	        	})
+	        	
+	        	
+	        	//动态加载用户的专栏
+            	$.post(localhost + "articleCtl/findSpeColListByUserId?userId="+sessionStorage.getItem("userId"),
+			        function (res) {
+			     
+			            var $specol = $('#specol');
+	            		for(var i = 0;i<res.length;i++){
+	            			var $ch = $('<input type="checkbox" name="specol" value="'+ res[i].id +'" title="'+ res[i].spe_col +'">');
+	            			
+	            			$specol.append($ch);
+	            			
+	            		}
+	            		form.render(); 
+	        	},'json');
+
+	        	//若是编辑，动态勾选之前发布的专栏、文章类型，权限设置
+	        	if(artId != null && artId != ''){
+	        		$.post(localhost + "articleCtl/findArtRelById?artId="+artId,
+				        function (res) {
+				        	var $specolList = $('#specol input');
+							var $artType = $('#artType input');
+							var $permType = $('#permType option');
+							if(res.typeList!=null && res.typeList.length>0)
+							for(var i = 0;i<$artType.length;i++){
+				        		for(var j = 0;j<res.typeList.length;j++){
+				        			if($artType[i].value == res.typeList[j]){
+				        				var $art = $($artType[i]);
+				        				$art.attr("checked",true);
+				        			}
+				        		}
+				        	}
+							
+							if(res.secList!=null && res.secList.length>0)
+				        	for(var i = 0;i<$specolList.length;i++){
+				        		for(var j = 0;j<res.secList.length;j++){
+				        			if($specolList[i].value == res.secList[j]){
+				        				var $spe = $($specolList[i]);
+				        				$spe.attr("checked",true);
+				        			}
+				        		}
+				        	}
+				        	
+				        	if(res.permType!=null && res.permType!="")
+				        	for(var i = 0;i<$permType.length;i++){
+				        		if($permType[i].value == res.permType){
+				        			var $perm = $($permType[i]);
+				        			$perm.attr("selected",true);
+				        		}
+				        	}
+
+		            		form.render(); 
+		        	},'json');
+		        }
+	        	
+	        	
+		        
+		        form.on('submit(editForm)', function(data){
+		        	
+		        	//判断复选框是否没有选择
+		            var artType = [];
+		            var specol = [];
+		            var permType = 0;
+		            
+		            $('select[name=permType] option:selected').each(function () {
+	                    permType = $(this).val();//将选中的值添加到数组chk_value中
+	                })
+		            if(permType.length == 0){
+		                layer.msg('权限类型还未选择',{icon:2,time:1000});
+		                return false;
+		            }
+		            
+		            
+	                $('input[name="artType"]:checked').each(function () {
+	                    artType.push($(this).val());//将选中的值添加到数组chk_value中
+	                })
+	                
+		            if(artType.length == 0){
+		                layer.msg('文章类型还未选择',{icon:2,time:1000});
+		                return false;
+		            }
+		        	
+		        	$('input[name="specol"]:checked').each(function () {
+	                    specol.push($(this).val());//将选中的值添加到数组chk_value中
+	                })
+		            if(specol.length == 0){
+		                layer.msg('专栏还未选择',{icon:2,time:1000});
+		                return false;
+		            }
+		            artType = artType.join(',');
+		            specol = specol.join(',');
+		            
+		            
+		            //异步提交
+		            $.post(localhost+"articleCtl/saveArtTypeAndSpecol",
+		            		{artId:artId,artType:artType,specol:specol,permType:permType,isreg:1}, 
+		            		function (res) {
+				                if(res.code == 0){
+				                    layer.msg('文章发布成功',{icon:1,time:1000},function(){
+				                        //当你在iframe页面关闭自身时
+				                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+				                        parent.layer.close(index); //再执行关闭
+				                       
+				                    });
+				                }
+				                else{
+				                    layer.msg('文章发布失败',{icon:2,time:1000})
+				                }
+				            },'json');
+		            
+				  	return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+			
+		        });
+		        
+		        
+		        
+		        
+		        
+		        
+		        
+		        
+		        
+		        
+		        
+		     });
+
+		</script>
+	</body>
+</html>

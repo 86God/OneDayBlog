@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset="utf-8">
+	    <title>注册</title>
+	    <meta name="renderer" content="webkit">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	
+	    <link rel="stylesheet" href="../plugins/layui/css/layui.css">
+	</head>		
+	<body>
+	</body>
+	<!-- 只是引入layUI核心js  单模块加载 -->
+<script src="../plugins/layui/layui.js"></script>
+<script type="text/javascript" src="../js/common.js" ></script>
+<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+
+<script type="text/javascript">
+    //一般直接写在一个js文件中
+    layui.use(['layer', 'form','jquery'], function(){
+        //单模块加载组件
+        var layer = layui.layer;
+        var form = layui.form;
+        var $ = layui.jquery;
+
+        /*  layer.msg('Hello World',{icon:3,time:1000},function(){
+             alert();
+         }); */
+
+        layer.open({
+            type:2,
+            title:"欢迎注册",            //标题
+            content:'register.html',        //内容
+            area: ['450px', '500px'],   //宽高
+            offset: '100px',
+            closeBtn:1,         //关闭按钮
+            move:false,         //是否可以移动
+            anim: 1,             //动画效果
+            shade:0.3,              //设置遮罩层
+            end:function(){
+            	window.location.href="login.html"; 
+            }
+        });
+
+
+        
+        
+ 
+    });
+</script>
+</html>

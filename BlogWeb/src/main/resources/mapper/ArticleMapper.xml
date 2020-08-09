@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace 指向对应接口的类路径
+ -->
+<mapper namespace="com.example.blog.mapper.ArticleMapper">
+
+    <!-- 查询文章类型列表-->
+    <select id="findArtTypeList" resultType="map">
+        select tat.id stairId,tat.type_name stairName,GROUP_CONCAT(tsat.id) secId,GROUP_CONCAT(tsat.sec_type_name) secNameList
+        from t_art_type tat
+        left join t_sec_art_type tsat
+        on tat.id = tsat.type_id
+        group by tat.id
+    </select>
+
+    <!-- 通过用户id获取用户的专栏列表 -->
+    <select id="findSpeColListByUserId"  parameterType="java.lang.String" resultType="map">
+        select id,spe_col
+        from t_specol
+        where user_id = #{userId}
+    </select>
+
+    <!-- 保存文章草稿 -->
+    <insert id="saveArt" parameterType="Article">
+        insert into t_article(title,user_id,content,release_time,perm_type,text,editor_type,isreg)
+        values(#{title},#{userId},#{content},NOW(),#{permType},#{text},#{editorType},#{isreg})
+    </insert>
+
+    <!-- 修改文章内容 -->
+    <update id="updateArtCon" parameterType="Article">
+        update t_article
+        set title=#{title},content=#{content},release_time=NOW(),
+            perm_type=#{permType},text=#{text},editor_type=#{editorType},isreg=#{isreg}
+        where id = #{id}
+    </update>
+
+    <!-- 返回最新插入的主键值 -->
+    <select id="backId" resultType="int">
+        SELECT @@IDENTITY
+    </select>
+
+    <!-- 更新文章信息 -->
+    <update id="updateArt" parameterType="Article">
+        update t_article
+        <set>
+            <if test="title != null &amp;&amp; title != ''">title = #{title},</if>
+            <if test="content != null &amp;&amp; content != ''">content = #{content},</if>
+            <if test="likes != null &amp;&amp; likes != ''">likes = #{likes},</if>
+            <if test="collect != null &amp;&amp; collect != ''">collect = #{collect},</if>
+            <if test="pageView != null &amp;&amp; pageView != ''">page_view = #{pageView},</if>
+            <if test="commentNum != null &amp;&amp; commentNum != ''">comment_num = #{commentNum},</if>
+            <if test="permType != null &amp;&amp; permType != ''">perm_type = #{permType},</if>
+            <if test="text != null &amp;&amp; text != ''">text = #{text},</if>
+            <if test="editorType != null &amp;&amp; editorType != ''">editor_type = #{editorType},</if>
+            <if test="isreg != null &amp;&amp; isreg != ''">isreg = #{isreg},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- 删除该文章之前的类型 -->
+    <delete id="deleteArtType" parameterType="int">
+        delete from t_art_type_rel
+        where art_id = #{artId}
+    </delete>
+
+    <!-- 添加文章的新类型 -->
+    <insert id="addArtType">
+        insert into
+        t_art_type_rel(art_id,art_type) values(#{artId},#{artType})
+    </insert>
+
+    <!-- 删掉之前的文章所属专栏-->
+    <delete id="deleteSpecol" parameterType="int">
+        delete from t_specol_rel
+        where art_id = #{artId}
+    </delete>
+
+    <!-- 插入新的文章所属专栏-->
+    <insert id="addSpecol">
+        insert into
+        t_specol_rel(art_id,spe_id) values(#{artId},#{specol})
+    </insert>
+
+
+    <!-- 分页查询文章列表，可以通过用户ID，文章类型，专栏 -->
+    <select id="findArtListByPage" parameterType="map" resultType="ArticleList">
+        select A.*,GROUP_CONCAT(ts.spe_col) speList
+        from
+        (select tu.id userId, tu.img userImg,tu.user_name userName,tu.nickname userNickName,
+        ta.id artId ,ta.release_time artRelTime,ta.title artTitle,ta.editor_type artEditorType,ta.perm_type artPermType,ta.isreg isreg,
+        ta.text artText,ta.page_view artView,ta.likes artLikes,ta.collect artCollect,ta.comment_num artCommentNum,
+        GROUP_CONCAT(tatr.art_type) artTypeList
+        from t_article ta
+        left join t_user tu
+        on ta.user_id = tu.id
+        left join t_art_type_rel tatr
+        on ta.id = tatr.art_id
+        <where>
+            <if test="condition.isreg!=null &amp;&amp; condition.isreg!=''">
+                ta.isreg = ${condition.isreg}
+            </if>
+            <if test="condition.userId!=null &amp;&amp; condition.userId!=''">
+                and tu.id = ${condition.userId}
+            </if>
+            <if test="condition.artType!=null &amp;&amp; condition.artType!=''">
+                and tatr.art_type = '${condition.artType}'
+            </if>
+            <if test="condition.artName!=null &amp;&amp; condition.artName!=''">
+                and ta.title like '%${condition.artName}%'
+            </if>
+        </where>
+        group by ta.id
+        ORDER BY ta.release_time desc
+        ) A
+        left join t_specol_rel tsr
+        on tsr.art_id = A.artId
+        left join t_specol ts
+        on tsr.spe_id = ts.id
+        <where>
+            <if test="condition.speId!=null &amp;&amp; condition.speId!='' &amp;&amp; condition.speId !=0">
+                and tsr.spe_id = ${condition.speId}
+            </if>
+        </where>
+        GROUP BY A.artId
+        order by A.artRelTime desc
+        limit #{start},#{condition.limit}
+    </select>
+
+    <!-- 查询符合条件的总记录数 -->
+    <select id="findArtListCount" parameterType="Condition" resultType="int">
+        select count(*)
+        from
+        (select A.*,GROUP_CONCAT(tsr.spe_id)
+        from
+        (select tu.id userId, tu.img userImg,tu.user_name userName,tu.nickname userNickName,
+        ta.id artId ,ta.release_time artRelTime,ta.title artTitle,ta.editor_type artEditorType,ta.perm_type artPermType,ta.isreg isreg,
+        ta.text artText,ta.page_view artView,ta.likes artLikes,ta.collect artCollect,ta.comment_num artCommentNum,
+        GROUP_CONCAT(tatr.art_type) artTypeList
+        from t_article ta
+        left join t_user tu
+        on ta.user_id = tu.id
+        left join t_art_type_rel tatr
+        on ta.id = tatr.art_id
+        <where>
+            <if test="isreg!=null &amp;&amp; isreg!=''">
+                ta.isreg = ${isreg}
+            </if>
+            <if test="userId!=null &amp;&amp; userId!='' &amp;&amp; userId !=0">
+                and tu.id = ${userId}
+            </if>
+            <if test="artType!=null &amp;&amp; artType!=''">
+                and tatr.art_type = '${artType}'
+            </if>
+            <if test="artName!=null &amp;&amp; artName!=''">
+                and ta.title like '%${artName}%'
+            </if>
+        </where>
+        group by ta.id
+        ORDER BY ta.release_time desc
+        ) A
+        left join t_specol_rel tsr
+        on tsr.art_id = A.artId
+        <where>
+            <if test="speId!=null &amp;&amp; speId!='' &amp;&amp; speId !=0">
+                and tsr.spe_id = ${speId}
+            </if>
+        </where>
+        GROUP BY A.artId
+        )B
+    </select>
+
+    <!-- 通过文章id查找文章 -->
+    <select id="findArtById" parameterType="int" resultType="map">
+        select ta.*,tu.img userImg,tu.nickname userNickName,tu.id userId
+        from t_article ta
+        left join t_user tu
+        on ta.user_id = tu.id
+        where ta.id = #{artId}
+    </select>
+
+    <!-- 根据文章id查询文章所属专栏和类型-->
+    <select id="findArtRelById" parameterType="int" resultType="map">
+        select A.id,A.typeList,GROUP_CONCAT(tsr.spe_id) secList,A.permType
+        from
+        (select ta.id,ta.perm_type permType,GROUP_CONCAT(tatr.art_type) typeList
+        from t_article ta
+        left join t_art_type_rel tatr
+        on ta.id=tatr.art_id
+        where ta.id = #{artId}
+        group by ta.id) A
+        left join t_specol_rel tsr
+        on A.id = tsr.art_id
+        GROUP BY A.id
+    </select>
+
+    <!-- 删除文章 -->
+    <delete id="deleteArtById" parameterType="int">
+        delete from t_article
+        where id = #{artId}
+    </delete>
+
+    <!-- 修改访问量 -->
+    <update id="addViewNum" parameterType="int">
+        update t_article
+        set page_view = page_view + 1
+        where id =#{artId}
+    </update>
+
+
+    <!-- 添加访问记录 -->
+    <insert id="addVisit" parameterType="map">
+        insert into t_visit(user_id,article_id,time) values (#{userId},#{artId},now());
+    </insert>
+
+    <!-- 判断是否已经点过赞 -->
+    <select id="ifLike" parameterType="map" resultType="map">
+        select *
+        from t_like
+        where user_id = #{userId} and article_id=#{artId}
+    </select>
+
+    <!-- 删除点赞记录 -->
+    <delete id="deleteLike" parameterType="map">
+        delete from t_like
+        where user_id=#{userId} and article_id=#{artId}
+    </delete>
+
+    <!-- 更新文章点赞数 -->
+    <update id="updateArtLikes" parameterType="map">
+        update t_article
+        set likes = likes + #{num}
+        where id=#{artId}
+    </update>
+
+    <!-- 添加点赞记录 -->
+    <insert id="addLike" parameterType="map">
+        insert into t_like(user_id,article_id) values (#{userId},#{artId})
+    </insert>
+
+    <!-- 更新文章数据信息 -->
+    <update id="updateArtNum" parameterType="int">
+        update t_article ta
+        INNER JOIN(
+        select B.*,IFNULL(count(tc.id),0) commentNum
+        from
+        (select A.id,A.likeNum,IFNULL(count(tc.user_id),0) collectNum
+        from
+        (select ta.id,ifnull(count(tl.article_id),0) likeNum
+        from t_article ta
+        left join t_like tl
+        on ta.id = tl.article_id
+        group by ta.id
+        ) A
+        left join t_collect tc
+        on A.id = tc.article_id
+        GROUP BY A.id) B
+        left join t_comment tc
+        on B.id = tc.article_id
+        GROUP BY B.id) C on ta.id = C.id
+        set ta.likes = C.likeNum,ta.collect = C.collectNum,ta.comment_num = C.commentNum
+        where C.id = #{artId}
+    </update>
+
+    <!-- 判断是否已经收藏 -->
+    <select id="ifCollect" parameterType="map" resultType="map">
+        select *
+        from t_collect
+        where user_id = #{userId} and article_id=#{artId}
+    </select>
+
+    <!-- 删除收藏记录 -->
+    <delete id="deleteCollect" parameterType="map">
+        delete from t_collect
+        where user_id=#{userId} and article_id=#{artId}
+    </delete>
+
+    <!-- 更新文章收藏数 -->
+    <update id="updateArtCollect" parameterType="map">
+        update t_article
+        set collect = collect + #{num}
+        where id=#{artId}
+    </update>
+
+    <!-- 添加文章收藏记录 -->
+    <insert id="addCollect" parameterType="map">
+        insert into t_collect(user_id,article_id) values (#{userId},#{artId})
+    </insert>
+
+    <!-- 查询收藏文章记录 -->
+    <select id="findArtCollectList" parameterType="map" resultType="map">
+        select tu.id userId, tu.img userImg,tu.user_name userName,tu.nickname userNickName,
+        ta.id artId ,ta.release_time artRelTime,ta.title artTitle,ta.editor_type artEditorType,ta.perm_type artPermType,ta.isreg isreg,
+        ta.text artText,ta.page_view artView,ta.likes artLikes,ta.collect artCollect,ta.comment_num artCommentNum
+        from t_collect tc
+        left join t_article ta
+        on tc.article_id = ta.id
+        left join t_user tu
+        on tu.id = ta.user_id
+        where tc.user_id = #{userId}
+        limit #{start},#{limit}
+    </select>
+
+    <!-- 查询收藏文章的总数 -->
+    <select id="findArtCollectListCount" parameterType="map" resultType="int">
+        select count(*) collectNum
+        from t_collect
+        where user_id = #{userId}
+    </select>
+
+    <!-- 发布评论 -->
+    <insert id="publishComment" parameterType="map">
+        insert into t_comment (user_id,article_id,comment_time,content) values (#{userId},#{artId},now(),#{commentTxt})
+    </insert>
+
+    <!-- 评论列表 -->
+    <select id="findCommentList" parameterType="map" resultType="map">
+        select tc.id commentId,tc.article_id artId,tc.comment_time commentTime,tc.content content,
+        ta.title artTitle,
+        tu.id userId,tu.user_name userName,tu.nickname nickname,tu.img userImg
+        from t_comment tc
+        left join t_user tu
+        on tu.id = tc.user_id
+        left join t_article ta
+        on ta.id = tc.article_id
+        where tc.article_id = #{artId}
+        limit #{start},#{limit}
+    </select>
+
+    <!-- 评论条数 -->
+    <select id="findCommentListCount" resultType="int" parameterType="map">
+        select count(*)
+        from
+        (select tc.id commentId,tc.article_id artId,tc.comment_time commentTime,tc.content content,
+        ta.title artTitle,
+        tu.id userId,tu.user_name userName,tu.nickname nickname
+        from t_comment tc
+        left join t_user tu
+        on tu.id = tc.user_id
+        left join t_article ta
+        on ta.id = tc.article_id
+        where tc.article_id = #{artId}) A
+    </select>
+</mapper>

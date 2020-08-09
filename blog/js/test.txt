@@ -1,0 +1,311 @@
+# 37. 解数独（难度：困难）
+
+> 题目链接：https://leetcode-cn.com/problems/sudoku-solver/
+
+编写一个程序，通过已填充的空格来解决数独问题。
+
+一个数独的解法需**遵循如下规则**：
+
+1. 数字 `1-9` 在每一行只能出现一次。
+2. 数字 `1-9` 在每一列只能出现一次。
+3. 数字 `1-9` 在每一个以粗实线分隔的 `3x3` 宫内只能出现一次。
+
+空白格用 `'.'` 表示。
+
+![img](https://86god-1302471896.cos.ap-chongqing.myqcloud.com/image/250px-Sudoku-by-L2G-20050714.svg.png)
+
+一个数独。
+
+![img](https://86god-1302471896.cos.ap-chongqing.myqcloud.com/image/250px-Sudoku-by-L2G-20050714.svg.png)
+
+答案被标成红色。
+
+**Note:**
+
+- 给定的数独序列只包含数字 `1-9` 和字符 `'.'` 。
+- 你可以假设给定的数独只有唯一解。
+- 给定数独永远是 `9x9` 形式的。
+
+
+
+## 解法一：回溯法
+
+该算法思想比较简单，给每个方块都设置约束，在数独上面放入一个数字，则这行、这列、这块（3*3）的元素都不能对这个数字再进行使用。从而减少回溯遍历的次数。
+
+我们只需要，逐行逐列的对每一个需要填写的数独赋以值，若当前正确，那么就进行下个数独的赋值；若出现了冲突，则开始回溯，尝试另一个可以的赋值。如果还是不行，那就再次回退。
+
+**如何查看是否冲突？**
+
+- 对该行进行遍历，查看是否有与新值相同的，即判断
+  `board[row][i] == ch`
+- 对该列进行遍历，查看是否有与新值相同的，即判断
+  `board[i][col] == ch`
+- 对该块进行遍历，查看是否有与新值相同的，即判断
+  `board[lumpRow][lumpCol] == ch`
+  - 其中lumpRow是指当前数独位置对应的块序号，
+    `lumpRow = (row / 3) * 3 + j / 3`
+  - 其中lumpCol是指当前数独位置在对应的块中的下标，即从左到右，从上到下依次排列的序号，
+    `lumpRow = (row / 3) * 3 + j / 3`
+
+![36_boxes_2.png](https://86god-1302471896.cos.ap-chongqing.myqcloud.com/image/5a7856c3c2a2185600b7cb5cd3fd50101281af7391a70a63293d82d62873aadd-36_boxes_2.png)
+
+算法思想：
+
+（1）从左上角开始 `row = 0,col = 0`。直到到达第一个空方格。
+
+（2）从 1 到 9 之间的数字d 依次尝试放入[row,col] 格子
+
+（3）若 d 没有出现在当前行，列，方块中，则放入该方格中，进行下一个方格的尝试。
+
+（4）若d出现在当前行或列或方块中，则回到到第（2）步，尝试下一个d。
+
+（5）若所有的d都尝试完，仍然没有满足的，则回溯到上一步，即上一个方格的赋值进行更改，然后重复（2）以后的操作。
+
+
+
+### 代码：
+
+![image-20200719204820419](https://86god-1302471896.cos.ap-chongqing.myqcloud.com/image/image-20200719204820419.png)
+
+```java
+class Solution {
+	public void solveSudoku(char[][] board) {
+		sudaoKu(board, 0, 0);
+	}
+
+	private boolean sudaoKu(char[][] board, int row, int col) {
+		int n = board.length; // 9
+
+		// 若一行满了，跳转到下一行
+		if (col == n) {
+			return sudaoKu(board, row + 1, 0);
+		}
+
+		/*
+		 * 当到最后一个数独board[8][8]，
+		 * 若验证成功， 下来是board[8][9],满足上面条件，
+		 * 会到board[9][0], 
+		 * 当到这块说明数独找到解法了,
+		 * 此处是整个回溯算法的出口
+		 */
+		if (row == n) {
+			return true;
+		}
+
+		// 当该位置已经有数字，直接去找下一个未填数的位置
+		if (board[row][col] != '.') {
+			return sudaoKu(board, row, col + 1);
+		}
+
+		// 遍历填数
+		for (char i = '1'; i <= '9'; i++) {
+			// 验证放入i是否满足条件
+			if (!verify(board, row, col, i)) {
+				continue;
+			}else {
+				//将i放入该位置
+				board[row][col] = i;
+				//接着递归判断下一列元素
+				//若成功找到解法，则返回true
+				if(sudaoKu(board,row,col+1)) {
+					return true;
+				}else {
+					//否则，回溯
+					board[row][col] = '.';
+				}
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * 验证在[row,col]位置插入i，是否满足条件 只需验证同一行、同一列、同一方块是否存在重复
+	 * 
+	 */
+	private boolean verify(char[][] board, int row, int col, char i) {
+
+		for (int j = 0; j < 9; j++) {		
+			// 根据j来遍历所在块，计算出该块中每个数独的位置，在整个board中的位置坐标。
+			int lumpRow = (row / 3) * 3 + j / 3;
+			int lumpCol = (col / 3) * 3 + j % 3;
+			//判断所在行是否存在重复
+			if(board[row][j] == i) return false;
+			//判断所在列是否存在重复
+			if(board[j][col] == i) return false;
+			//判断所在块是否存在重复
+			if(board[lumpRow][lumpCol] == i) return false;
+		}
+		return true;
+	}
+}
+```
+
+
+
+## 解法二：回溯法+状态压缩
+
+### 思路：
+
+#### 1、状态压缩
+
+（1）我们可以对每一行、每一列、每个`3*3`方块使用一个int数字来压缩存储他们中出现的数字。
+
+（2）然后我们可以得到每一个方格都有对应的行、列、方块中已经出现的数字，从而可以得到没有出现的数字，也就是可以供选择填入的数字，这样我们就可以大大提高效率。
+
+（3）我们可以选择约束最多的方格开始尝试赋值，这样可以大大减少我们回溯的次数，约束最多也就是指的在该方格的行和列以及`3*3`方块中出现不同数字的次数最多。
+
+（4）在每次填入数字之后，对压缩存储信息的数组进行更新。
+
+（5）根据压缩存储信息的更新，然后重新计算可以填入的数字。
+
+**那么我们如何使用一个int数字来压缩表示他们中出现的数字？**
+
+我们可以把每一个int 数字都想象成他的二进制形式。因为java中一个int类型的数字是32位，而我们若用每位来表示0-9之间的数字是否存在，只需要使用低位的9位。所以下面我只罗列地位的九位。
+
+若我们使用171来表示一个压缩存储信息：
+
+![image-20200719210525661](https://86god-1302471896.cos.ap-chongqing.myqcloud.com/image/image-20200719210525661.png)
+
+（1）在我们存储信息的时候，只需要对每一行、每一列、每个`3*3`方块 的int数字 进行或运算，即 `rows[x] = rows[x] | 1<<n`
+
+（2）我们想要知道某个方格对应的行、列、方块已经存在的数字，只需要对他们进行或运算，即`rows[x] | cols[y] | cells[x/3][y/3]`;
+
+（3）若想拿到该方格可以填入的数字，只需要对上面表达式取反，即`~(rows[x] | cols[y] | cells[x/3][y/3])`;
+
+（4）若想知道那个方格的约束最多，只需要对上述计算的已经存在的数字，计算出其二进制的1的个数，个数最多的表示约束最多。
+我们可以利用Integer.bitCount() 方法刚好可以得到1的个数。
+
+
+
+下图，不是自己做的，直接使用大佬的图：
+
+![1fb1c64cfddb5c66b61bd769224724a05027172d6486feb19b3a16d9473372ee-图片](https://86god-1302471896.cos.ap-chongqing.myqcloud.com/image/1fb1c64cfddb5c66b61bd769224724a05027172d6486feb19b3a16d9473372ee-图片.png)
+
+
+
+
+
+### 代码：
+
+![QQ截图20200719193327](https://86god-1302471896.cos.ap-chongqing.myqcloud.com/image/QQ截图20200719193327.png)
+
+```java
+class Solution {
+    	//解法二
+	/* rows,cols,cells分别表示在某行、某列、某块已经出现的数字
+	 * 使用二进制表示
+	 * 如：	 100010010
+	 * 对应：  987654321
+	 * 已经存在的数字：9,5,2
+	 */
+	
+	int rows[] = new int[9];
+	int cols[] = new int[9];
+	int cells[][] = new int[3][3];
+	
+	/*计算出[x,y]坐标可以填的数，用二进制表示可以填写的数
+	 * 如      100100010
+	 * 对应  987654321
+	 * 可以填写是数字为9,6,2
+	 */
+	private int getPossibleStatus(int x,int y) {
+		return ~(rows[x] | cols[y] | cells[x/3][y/3]);
+	}
+	
+	/*
+	 * 找到能够填写数字的个数最小的那个位置，
+	 * 即通过getPossibleStatus方法得到的数字，转为二进制
+	 * 其中1的个数最小的那个位置
+	 */
+	private Map<Integer, Integer> getNext(char[][] board) {
+		Map<Integer, Integer> map = new HashMap<>();
+		int min = 33;
+		int r = 0,c =0;
+		for(int i = 0;i<9;i++) {
+			for(int j = 0;j<9;j++) {
+				if(board[i][j] != '.') continue;
+				int temp = getPossibleStatus(i, j);
+				//计算其中包含1的个数，即可以填写的数字的个数
+				int tempNum = Integer.bitCount(temp);
+				if(tempNum >= min) continue;
+				r = i;
+				c = j;
+				min = tempNum;
+			}
+		}
+		map.put(r, c);
+		return map;
+	}
+	
+	/**
+	 * 更新三个数组的数据
+	 * flag若为true，则是更新指定位置的数为1，
+	 * 若为false则是，回调，将指定位置的数改为0.
+	 * @param x
+	 * @param y
+	 * @param n
+	 */
+	private void fillNum(int x,int y,int n,boolean flag) {
+		rows[x] = (flag)?(rows[x] | 1<<n):(rows[x] & (~(1<<n)) );
+		cols[y] = (flag)?(cols[y] | 1<<n):(cols[y] & (~(1<<n)) );
+		cells[x/3][y/3] = (flag)?(cells[x/3][y/3] | 1<<n):(cells[x/3][y/3] & (~(1<<n)) );
+	}
+	
+	/**
+	 * 回溯方法
+	 * @param board
+	 * @param cnt
+	 * @return
+	 */
+	boolean dfs(char[][] board,int cnt) {
+		if(cnt == 0) {
+			return true;
+		}
+		
+		//计算出可填的数字个数最小的坐标
+		Map<Integer, Integer> map = getNext(board);
+		
+		int x = 0,y = 0;
+		//拿到x,y坐标
+		for(Map.Entry<Integer, Integer> entry : map.entrySet()){
+		    x = entry.getKey();
+		    y = entry.getValue();
+		}
+		
+		//拿到可以填写的数字
+		int bits = getPossibleStatus(x, y);
+		
+		//在指定位置填数
+		for(int n = 0;n<9;n++) {
+			//找到可以填的数字（挨个试）
+			//若不是可以填写的数字则跳过
+			if((bits & (1<<n)) == 0) continue;
+			fillNum(x, y, n, true);
+			board[x][y] = (char) (n + '1');
+			if(dfs(board, cnt - 1)) 
+				return true;
+			//如若不能找到最终结果，则回调
+			board[x][y] = '.';
+			fillNum(x, y, n, false);
+		} 
+		return false;
+	}
+	
+	
+	public void solveSudoku(char[][] board) {
+		//计算'.'的个数，即需要补空的个数
+		int cnt = 0;
+		
+		for (int i = 0; i < board.length; i++) {
+			for (int j = 0; j < board[i].length; j++) {
+				cnt += (board[i][j] == '.'? 1:0);
+				if(board[i][j] == '.')
+					continue;
+				int n = board[i][j] -'1';
+				fillNum(i,j,n,true);
+			}
+		}
+		dfs(board, cnt);
+	}	
+}
+```

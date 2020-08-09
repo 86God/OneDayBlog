@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>个人主页</title>
+		<meta name="renderer" content="webkit">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<link rel="stylesheet" href="../plugins/layuiadmin/layui/css/layui.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/admin.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/template.css" media="all">
+	</head>
+
+	<body>
+		<div class="layui-fluid layadmin-homepage-fluid">
+			<div class="layui-row layui-col-space20 layadmin-homepage-list-imgtxt">
+				<div class="grid-demo" id="artListDiv">
+					<!-- 文章列表 -->																
+				</div>
+			</div>
+		</div>
+
+		<script src="../plugins/layuiadmin/layui/layui.js"></script>
+		<script type="text/javascript" src="../js/common.js" ></script>
+		<script src="../js/requestParam.js"></script>
+	
+		<script>
+			layui.use(['flow','layer'], function(){
+					var $ = layui.jquery; //不用额外加载jQuery，flow模块本身是有依赖jQuery的，直接用即可。
+					var layer = layui.layer;
+				    var flow = layui.flow;
+				    
+				    var artType = request.QueryString("artType");
+				    var specolId = request.QueryString("specolId");
+				    var userId = request.QueryString("userId");
+				    var isreg = request.QueryString("isreg");
+				    var artName = request.QueryString("artName");
+				    
+				  	flow.load({
+					   	elem: '#artListDiv' //指定列表容器
+					    ,done: function(page, next){ //到达临界点（默认滚动触发），触发下一页
+					      	var lis = [];
+						    //以jQuery的Ajax请求为例，请求下一页数据（注意：page是从2开始返回）
+						    $.get(localhost+'articleCtl/findArtListByPage?pageNum='+page +'&limit=5'+'&artType='+artType+'&speId='+specolId+'&isreg='+isreg+'&userId='+userId+'&artName='+artName, function(res){
+					       
+					        //假设你的列表返回在data集合中
+					        layui.each(res.data, function(index, item){
+					        	
+					        	var time = new Date(item.artRelTime).getTime()- 8 * 60 * 60 * 1000;
+                        		
+                        		var artRelTime = new Date(time).toLocaleString();
+                        
+					     
+					        	$div1 = $('<div class="panel-body layadmin-homepage-shadow"></div>')
+					        	$img = $('<a href="../user/personalHomePage.html?userId='+ item.userId +'" class="media-left"><img src="'+ cosPath + item.userName +'//'+ item.userImg  +'" height="46px" width="46px"></a>');
+					        
+					        	$div1.append($img);
+					        	$div2 = $('<div class="media-body"></div>');
+					        	$div3 = $('<div class="pad-btm" style="padding-bottom: 0;"></div>');
+					        	$p1 = $('<p class="fontColor"><a href="../user/personalHomePage.html?userId='+ item.userId +'">'+ item.userNickName +'</a>创作了新的<span>文章</span></p>');
+					        	$p2 = $('<p class="min-font">'+ artRelTime +'</p>');
+					        	$h2 = $('<h2 class="fontColor"><a href="../article/article_detail.html?artId='+ item.artId +'&userId='+item.userId+'">'+ item.artTitle +'</a></h2>');
+					        	$p3 = $('<p class="min-font" style="text-indent:30px;display: -webkit-box;-webkit-box-orient: vertical;-webkit-line-clamp: 3;overflow: hidden;"></p>');
+					        	$p3.text(item.artText.substring(0,300));
+					        	$div3.append($p1);
+					        	$div3.append($p2);
+					        	$div3.append($h2);
+					        	$div3.append($p3);
+					        	$div2.append($div3);
+					        	$div1.append($div2);
+					        	
+					        	$div4=$('<div class="media-body"></div>');
+					        	$div5=$('<div class="media"></div>');
+					        	$div6=$('<div class="media-left"></div>');
+					        	$ul=$('<ul class="list-inline"></ul>');
+					        	$li1=$('<li><i class="layui-icon layui-icon-read"></i><span>浏览</span><span>'+ item.artView+'次</span></li>');
+					        	$li2=$('<li><i class="layui-icon layui-icon-praise"></i><span>点赞</span><span>'+ item.artLikes+'</span></li>');
+					        	$li3=$('<li><i class="layui-icon layui-icon-rate"></i><span>收藏</span><span>'+ item.artCollect+'</span></li>');
+					        	$li4=$('<li><i class="layui-icon layui-icon-reply-fill"></i><span>评论</span><span>'+ item.artCommentNum+'</span></li>');
+					        	
+					        	$ul.append($li1);
+					        	$ul.append($li2);
+					        	$ul.append($li3);
+					        	$ul.append($li4);
+					        	$div6.append($ul);
+					        	$div5.append($div6);
+					        	$div4.append($div5);
+					        	$div1.append($div4);
+					        	
+					        	
+					          	lis.push($div1.get(0).outerHTML);
+					          	
+					        }); 
+					        
+					        //执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+					        //pages为Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+					        next(lis.join(''), page < res.pages);    
+					      });
+					    }
+					});
+					
+			});
+		</script>
+	</body>
+
+</html>

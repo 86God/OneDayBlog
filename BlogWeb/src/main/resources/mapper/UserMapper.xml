@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+	namespace 指向对应接口的类路径
+ -->
+<mapper namespace="com.example.blog.mapper.UserMapper">
+
+    <!-- 通过用户名和密码查询-->
+    <select id="findByUserNamePW" resultType="User" parameterType="User">
+        select
+        *
+        from t_user where user_name=#{userName} and password = #{password};
+    </select>
+
+    <!-- 返回最新插入的主键值 -->
+    <select id="backId" resultType="int">
+        SELECT @@IDENTITY
+    </select>
+
+    <!--更新用户图像 -->
+    <update id="updateUserImg" parameterType="User">
+        update t_user
+        set img = #{img}
+        where id = #{id}
+    </update>
+
+    <!--通过用户ID查询用户信息 -->
+    <select id="findUserInfoById" resultType="map" parameterType="int">
+        select tu.id,tu.user_name,tu.nickname,tu.identity,tu.address,tu.synopsis,tu.img,tu.sex,tu.phone_num,
+				ifnull(tuhi.attention,0) attention,ifnull(tuhi.collect,0) collect,ifnull(tuhi.heat,0) heat,ifnull(tuhi.article_num,0) article_num,GROUP_CONCAT(tt.tag) tagList
+        from t_user tu
+        left join t_user_head_info tuhi
+        on tu.id = tuhi.user_id
+        left join t_tag_record ttr
+        on ttr.user_id = tu.id
+        left join t_tag tt
+        on ttr.tag_id = tt.id
+        where tu.id = #{id}
+        group by tu.id
+    </select>
+
+    <!--通过用户名查询用户信息 -->
+    <select id="findUserByUserName" resultType="java.lang.String" parameterType="java.lang.String">
+        select *
+        from t_user
+        where user_name = #{userName}
+    </select>
+
+    <!-- 注册 -->
+    <insert id="reg" parameterType="User">
+        insert into t_user(user_name,nickname,password) values(#{userName},#{nickname},#{password})
+    </insert>
+
+    <update id="updateUserInfo" parameterType="User">
+        update t_user
+        set user_name = #{userName},nickname=#{nickname},address=#{address},phone_num=#{phoneNum},identity=#{identity},
+        synopsis=#{synopsis},sex=#{sex}
+        where id=#{id}
+    </update>
+
+    <select id="findAllTag" resultType="map">
+        select *
+        from t_tag
+    </select>
+
+    <delete id="deleteAllUserTag" parameterType="int">
+        delete from t_tag_record
+        where user_id = ${id}
+    </delete>
+
+    <insert id="insertUserTag" parameterType="map">
+        insert into t_tag_record(user_id,tag_id) values (#{id},#{tId})
+    </insert>
+
+    <select id="findTagId" parameterType="java.lang.String" resultType="int">
+        select id from t_tag where tag=#{s}
+    </select>
+
+    <update id="changePW" parameterType="map">
+        update t_user
+        set password = #{password}
+        where id=#{userId}
+    </update>
+
+    <select id="verifyOldPW" parameterType="map" resultType="User">
+        select *
+        from t_user
+        where id=#{userId} and password=#{oldPassword}
+    </select>
+
+    <select id="findViewList" parameterType="int" resultType="map">
+        select tv.id,tv.time,tv.user_id,tu1.id,tu1.img,tu1.user_name
+        from
+        t_visit tv
+        left join
+        t_user tu1
+        on tu1.id = tv.user_id
+        left join
+        t_article ta
+        on tv.article_id = ta.id
+        left join
+        t_user tu
+        on ta.user_id=tu.id
+        where tu.id=#{userId} and tv.user_id != #{userId}
+        GROUP BY tv.user_id
+        ORDER BY tv.time desc
+    </select>
+
+    <!-- 添加用户主页的头信息 -->
+    <insert id="addHeadInfo" parameterType="user">
+        insert into t_user_head_info (user_id) values (#{id})
+    </insert>
+
+    <!-- 更新用户主页的头信息 -->
+    <update id="updateUserHeadInfo" parameterType="int">
+    update t_user_head_info tuhi
+    INNER JOIN(
+    select F.*,ifnull(count(tf.focus_id),0) focusNum
+    from
+    (select E.userId,count(E.artId) artNum,sum(E.likeNum) likeNum,sum(E.collectNum) collectNum,sum(E.commentNum) commentNum,sum(E.viewNum) viewNum
+    from
+    (select D.*,count(tv.user_id) viewNum
+    from
+    (select C.*,IFNULL(count(tc.id),0) commentNum
+    from
+    (select B.*, IFNULL(count(tc.user_id),0) collectNum
+    from
+    (select A.userId,A.artId,ifnull(count(tl.article_id),0) likeNum
+    from
+    (select tu.id userId,ta.id artId
+    from t_user tu
+    left join t_article ta
+    on tu.id = ta.user_id) A
+    left join t_like tl
+    on A.artId = tl.article_id
+    group by A.artId)B
+    left join t_collect tc
+    on B.artId = tc.article_id
+    GROUP BY B.artId) C
+    left join t_comment tc
+    on C.artId = tc.article_id
+    GROUP BY C.artId) D
+    left join t_visit tv
+    on D.artId = tv.article_id
+    GROUP BY D.artId) E
+    GROUP BY E.userId) F
+    left join t_focus tf
+    on tf.user_id = F.userId
+    GROUP BY F.userId)H on tuhi.user_id = H.userId
+    set tuhi.attention = H.focusNum,tuhi.collect = H.collectNum,tuhi.heat = H.viewNum,tuhi.article_num = H.artNum
+    where H.userId = #{userId}
+    </update>
+
+    <select id="findUserListByPage" parameterType="map" resultType="map">
+        select tu.id,tu.user_name,tu.nickname,tu.identity,tu.img
+        from t_focus tf
+		left join t_user tu
+        <if test="userId!=null &amp;&amp; userId!=''">
+            on tu.id = tf.focus_id
+            where tf.user_id = #{userId}
+        </if>
+        <if test="concernId!=null &amp;&amp; concernId!=''">
+            on tu.id = tf.user_id
+            where tf.focus_id = #{concernId}
+        </if>
+        limit #{start},#{limit}
+    </select>
+
+    <select id="findUserListCount" parameterType="map" resultType="int">
+        select count(*)
+        from
+        (select tu.id,tu.user_name,tu.nickname,tu.identity,tu.img
+        from t_focus tf
+        left join t_user tu
+        <if test="userId!=null &amp;&amp; userId!=''">
+            on tu.id = tf.focus_id
+            where tf.user_id = #{userId}
+        </if>
+        <if test="concernId!=null &amp;&amp; concernId!=''">
+            on tu.id = tf.user_id
+            where tf.focus_id = #{concernId}
+        </if>) A
+    </select>
+
+    <!-- 查找用户最近评论 -->
+    <select id="findCommentList" parameterType="int" resultType="map">
+        select ta.id artId,ta.title artTitle,ta.user_id artUserId,tu.nickname artUserNickname,tu1.id userId,tu1.user_name userName,tu1.img userImg,tu1.nickname nickname,tc.id,tc.content,tc.comment_time
+        from t_comment tc
+        left join t_article ta
+        on tc.article_id = ta.id
+        left join t_user tu
+        on ta.user_id = tu.id
+        left join t_user tu1
+        on tc.user_id = tu1.id
+        where tu.id = #{userId}
+        ORDER BY tc.comment_time desc
+        limit 0,6
+    </select>
+
+
+    <!-- 判断是否已经关注 -->
+    <select id="ifFocus" parameterType="map" resultType="map">
+        select *
+        from t_focus
+        where user_id=#{userId} and focus_id=#{focus}
+    </select>
+
+    <!-- 添加关注 -->
+    <insert id="addContact" parameterType="map">
+        insert into t_focus (user_id,focus_id) values (#{userId},#{focus})
+    </insert>
+
+    <!-- 取消关注 -->
+    <delete id="removeContact" parameterType="map">
+        delete from t_focus where user_id = #{userId} and focus_id = #{focus}
+    </delete>
+
+    <!-- 查找用户全部评论 -->
+    <select id="findCollectList" parameterType="int" resultType="map">
+        select ta.id artId,ta.title artTitle,ta.user_id artUserId,
+        tu.nickname artUserNickname,
+        tu1.id userId,tu1.user_name userName,tu1.img userImg,tu1.nickname nickname,
+        tc.id,tc.content,tc.comment_time
+        from t_comment tc
+        left join t_article ta
+        on tc.article_id = ta.id
+        left join t_user tu
+        on ta.user_id = tu.id
+        left join t_user tu1
+        on tc.user_id = tu1.id
+        where tu.id = #{userId}
+        ORDER BY tc.comment_time desc
+        limit #{start},#{limit}
+    </select>
+
+    <!-- 用户全部评论总数 -->
+    <select id="findCollectListCount" parameterType="map" resultType="int">
+        select count(*)
+        from
+        (select ta.id artId,ta.title artTitle,ta.user_id artUserId,tu.nickname artUserNickname,tu1.id userId,tu1.user_name userName,tu1.img userImg,tu1.nickname nickname,tc.id,tc.content,tc.comment_time
+        from t_comment tc
+        left join t_article ta
+        on tc.article_id = ta.id
+        left join t_user tu
+        on ta.user_id = tu.id
+        left join t_user tu1
+        on tc.user_id = tu1.id
+        where tu.id = #{userId}) A
+    </select>
+
+    <!-- 用户的创作数据 -->
+    <select id="findCreateData" parameterType="int" resultType="map">
+    select G.*,ifnull(count(tf2.user_id),0) concernNum
+	from
+    (select F.*,ifnull(count(tf.focus_id),0) focusNum
+    from
+    (select E.userId,count(E.artId) artNum,sum(E.likeNum) likeNum,sum(E.collectNum) collectNum,sum(E.commentNum) commentNum,sum(E.viewNum) viewNum
+    from
+    (select D.*,count(tv.user_id) viewNum
+    from
+    (select C.*,IFNULL(count(tc.id),0) commentNum
+    from
+    (select B.*, IFNULL(count(tc.user_id),0) collectNum
+    from
+    (select A.userId,A.artId,ifnull(count(tl.article_id),0) likeNum
+    from
+    (select tu.id userId,ta.id artId
+    from t_user tu
+    left join t_article ta
+    on tu.id = ta.user_id) A
+    left join t_like tl
+    on A.artId = tl.article_id
+    group by A.artId)B
+    left join t_collect tc
+    on B.artId = tc.article_id
+    GROUP BY B.artId) C
+    left join t_comment tc
+    on C.artId = tc.article_id
+    GROUP BY C.artId) D
+    left join t_visit tv
+    on D.artId = tv.article_id
+    GROUP BY D.artId) E
+    GROUP BY E.userId) F
+    left join t_focus tf
+    on tf.user_id = F.userId
+    GROUP BY F.userId)G
+    left join t_focus tf2
+    on G.userId = tf2.focus_id
+    where G.userId = #{userId}
+    </select>
+
+
+    <!-- 查询用户今天的数据 -->
+    <select id="findTodayHot" parameterType="int" resultType="map">
+        select ta.id,ta.title,ta.likes,ta.collect,ta.page_view,ta.comment_num,count(tv.id) viewNum
+        from t_article ta
+        left join t_visit tv
+        on ta.id = tv.article_id and date(tv.time) = date_sub(curdate(),interval 0 day)
+        where ta.user_id = #{userId}
+        GROUP BY ta.id
+        order by count(tv.id) desc , page_view desc
+        limit 0,3
+    </select>
+
+    <!-- 查询用户历史的数据 -->
+    <select id="findHistoryHot" parameterType="int" resultType="map">
+        select ta.id,ta.title,ta.likes,ta.collect,ta.page_view,ta.comment_num,count(tv.id) viewNum
+        from t_article ta
+        left join t_visit tv
+        on ta.id = tv.article_id and date(tv.time) = date_sub(curdate(),interval 0 day)
+        where ta.user_id = #{userId}
+        GROUP BY ta.id
+        order by page_view desc , count(tv.id) desc
+        limit 0,3
+    </select>
+
+    <!-- 查询用户今天的创作量 -->
+    <select id="findTodayArtNum" parameterType="int" resultType="map">
+        select A.time,ifnull(count(ta.id),0) artNum
+        from
+        (SELECT  DATE_FORMAT( DATE_SUB( DATE_FORMAT( NOW(),'%Y-%m-%d'),INTERVAL ( -(@i:=@i+1) ) HOUR ) ,'%Y-%m-%d %H') AS 'time'
+        FROM (
+                SELECT a  FROM
+                 (SELECT '1' AS a UNION SELECT '2' UNION SELECT '3' UNION SELECT '4'   ) AS a
+                    JOIN ( SELECT  '1' UNION SELECT '2' UNION SELECT '3' UNION SELECT '4' UNION SELECT '5' UNION SELECT '6' ) AS b
+                     ON 1
+                 ) AS b  ,(SELECT @i:=-1)  AS i)A
+        left join t_article ta
+        on DATE_FORMAT(ta.release_time,'%Y-%m-%d %H') = A.time and ta.user_id = #{userId}
+        GROUP BY A.time
+        order by A.time
+    </select>
+
+    <!-- 查询用户今天的访问量  -->
+    <select id="findTodayViewNum" parameterType="int" resultType="map">
+        select A.time,ifnull(B.viewNum,0) viewNum
+        from
+        (SELECT  DATE_FORMAT( DATE_SUB( DATE_FORMAT( NOW(),'%Y-%m-%d'),INTERVAL ( -(@i:=@i+1) ) HOUR ) ,'%Y-%m-%d %H') AS 'time'
+        FROM (
+                SELECT a  FROM
+                 (SELECT '1' AS a UNION SELECT '2' UNION SELECT '3' UNION SELECT '4'   ) AS a
+                    JOIN ( SELECT  '1' UNION SELECT '2' UNION SELECT '3' UNION SELECT '4' UNION SELECT '5' UNION SELECT '6' ) AS b
+                     ON 1
+                 ) AS b  ,(SELECT @i:=-1)  AS i)A
+        left join
+        (select DATE_FORMAT(tv.time,'%Y-%m-%d %H') time,ifnull(count(ta.id),0) viewNum
+        from t_visit tv
+        left join t_article ta
+        on tv.article_id = ta.id
+        where ta.user_id = #{userId}
+        GROUP BY DATE_FORMAT(tv.time,'%Y-%m-%d %H'))B
+        on A.time = B.time
+        ORDER BY A.time
+    </select>
+
+    <!-- 查询用户今天的评论量 -->
+    <select id="findTodayCommentNum" parameterType="int" resultType="map">
+        select A.time,ifnull(B.commentNum,0) commentNum
+        from
+        (SELECT  DATE_FORMAT( DATE_SUB( DATE_FORMAT( NOW(),'%Y-%m-%d'),INTERVAL ( -(@i:=@i+1) ) HOUR ) ,'%Y-%m-%d %H') AS 'time'
+        FROM (
+                SELECT a  FROM
+                 (SELECT '1' AS a UNION SELECT '2' UNION SELECT '3' UNION SELECT '4'   ) AS a
+                    JOIN ( SELECT  '1' UNION SELECT '2' UNION SELECT '3' UNION SELECT '4' UNION SELECT '5' UNION SELECT '6' ) AS b
+                     ON 1
+                 ) AS b  ,(SELECT @i:=-1)  AS i)A
+        left join
+        (select DATE_FORMAT(tc.comment_time,'%Y-%m-%d %H') time,ifnull(count(ta.id),0) commentNum
+        from t_comment tc
+        left join t_article ta
+        on tc.article_id = ta.id
+        where ta.user_id = #{userId}
+        GROUP BY DATE_FORMAT(tc.comment_time,'%Y-%m-%d %H'))B
+        on A.time = B.time
+        ORDER BY A.time
+    </select>
+
+    <!-- 查询用户最近一周的写作量 -->
+    <select id="findWeekArtNum" parameterType="int" resultType="map">
+        select A.time,ifnull(count(ta.id),0) artNum
+        from
+        (SELECT @s :=@s + 1 as `index`, DATE(DATE_SUB(CURRENT_DATE, INTERVAL @s DAY)) AS time
+        FROM mysql.help_topic,(SELECT @s := -1) temp
+        WHERE @s &lt; 6
+        ORDER BY time)A
+        left join t_article ta
+        on DATE_FORMAT(ta.release_time,'%Y-%m-%d') = A.time and ta.user_id = #{userId}
+        GROUP BY A.time
+        order by A.time
+    </select>
+
+    <!-- 查询用户最近一周的访问量 -->
+    <select id="findWeekViewNum" parameterType="int" resultType="map">
+        select A.time,ifnull(B.viewNum,0) viewNum
+        from
+        (SELECT @s :=@s + 1 as `index`, DATE(DATE_SUB(CURRENT_DATE, INTERVAL @s DAY)) AS time
+        FROM mysql.help_topic,(SELECT @s := -1) temp
+        WHERE @s &lt; 6
+        ORDER BY time)A
+        left join
+        (select DATE_FORMAT(tv.time,'%Y-%m-%d') time,ifnull(count(ta.id),0) viewNum
+        from t_visit tv
+        left join t_article ta
+        on tv.article_id = ta.id
+        where ta.user_id = #{userId}
+        GROUP BY DATE_FORMAT(tv.time,'%Y-%m-%d'))B
+        on A.time = B.time
+        ORDER BY A.time
+    </select>
+
+    <!-- 最近一周的评论量 -->
+    <select id="findWeekCommentNum" parameterType="int" resultType="map">
+        select A.time,ifnull(B.commentNum,0) commentNum
+        from
+        (SELECT @s :=@s + 1 as `index`, DATE(DATE_SUB(CURRENT_DATE, INTERVAL @s DAY)) AS time
+        FROM mysql.help_topic,(SELECT @s := -1) temp
+        WHERE @s &lt; 6
+        ORDER BY time)A
+        left join
+        (select DATE_FORMAT(tc.comment_time,'%Y-%m-%d') time,ifnull(count(ta.id),0) commentNum
+        from t_comment tc
+        left join t_article ta
+        on tc.article_id = ta.id
+        where ta.user_id = #{userId}
+        GROUP BY DATE_FORMAT(tc.comment_time,'%Y-%m-%d'))B
+        on A.time = B.time
+        ORDER BY A.time
+    </select>
+
+    <!-- 最近30天的创作量 -->
+    <select id="findMonthArtNum" parameterType="int" resultType="map">
+        select A.time,ifnull(count(ta.id),0) artNum
+        from
+        (SELECT @s :=@s + 1 as `index`, DATE(DATE_SUB(CURRENT_DATE, INTERVAL @s DAY)) AS time
+        FROM mysql.help_topic,(SELECT @s := -1) temp
+        WHERE @s &lt; 29
+        ORDER BY time)A
+        left join t_article ta
+        on DATE_FORMAT(ta.release_time,'%Y-%m-%d') = A.time and ta.user_id = #{userId}
+        GROUP BY A.time
+        order by A.time
+    </select>
+
+    <!-- 最近30天的访问量 -->
+    <select id="findMonthViewNum" parameterType="int" resultType="map">
+        select A.time,ifnull(B.viewNum,0) viewNum
+        from
+        (SELECT @s :=@s + 1 as `index`, DATE(DATE_SUB(CURRENT_DATE, INTERVAL @s DAY)) AS time
+        FROM mysql.help_topic,(SELECT @s := -1) temp
+        WHERE @s &lt; 29
+        ORDER BY time)A
+        left join
+        (select DATE_FORMAT(tv.time,'%Y-%m-%d') time,ifnull(count(ta.id),0) viewNum
+        from t_visit tv
+        left join t_article ta
+        on tv.article_id = ta.id
+        where ta.user_id = #{userId}
+        GROUP BY DATE_FORMAT(tv.time,'%Y-%m-%d'))B
+        on A.time = B.time
+        ORDER BY A.time
+    </select>
+
+    <!-- 最近30天的评论量 -->
+    <select id="findMonthCommentNum" resultType="map" parameterType="int">
+        select A.time,ifnull(B.commentNum,0) commentNum
+        from
+        (SELECT @s :=@s + 1 as `index`, DATE(DATE_SUB(CURRENT_DATE, INTERVAL @s DAY)) AS time
+        FROM mysql.help_topic,(SELECT @s := -1) temp
+        WHERE @s &lt; 30
+        ORDER BY time)A
+        left join
+        (select DATE_FORMAT(tc.comment_time,'%Y-%m-%d') time,ifnull(count(ta.id),0) commentNum
+        from t_comment tc
+        left join t_article ta
+        on tc.article_id = ta.id
+        where ta.user_id = #{userId}
+        GROUP BY DATE_FORMAT(tc.comment_time,'%Y-%m-%d'))B
+        on A.time = B.time
+        ORDER BY A.time
+    </select>
+
+</mapper>

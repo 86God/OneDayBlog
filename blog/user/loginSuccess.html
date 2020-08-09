@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset="utf-8">
+	    <title>主页</title>
+	    <meta name="renderer" content="webkit">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/admin.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/template.css" media="all">
+	    <link rel="stylesheet" href="../plugins/layui/css/layui.css">
+	</head>
+	<body class="layui-layout-body">
+	    <div class="layui-layout layui-layout-admin">
+	        <!-- 头部区域 -->
+	        <div class="layui-header">
+	            <div class="layui-logo" style="line-height: 50px;">博客</div>
+	            
+	            <ul class="layui-nav layui-layout-left">
+			      <li class="layui-nav-item"><a href="loginSuccess.html">首页</a></li>
+			      <li class="layui-nav-item"><a href="../collect/collectArtList.html">我的收藏</a></li>
+			      <li class="layui-nav-item"><a href="../specol/mySpecol.html">我的专栏</a></li>  	
+			      <li class="layui-nav-item">
+			      	<div>
+				      	<input type="text" class="layui-input-inline" id="search" placeholder="请输入要搜索的内容" style="padding: 10px;border: none;">
+				      	<button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="searchBtn">
+						  <i class="layui-icon layui-icon-search"></i>
+						</button>
+				      	
+			      	</div>
+			      </li> 
+			    </ul>
+	            
+	            <ul class="layui-nav layui-layout-right">
+	            	<li class="layui-nav-item" style="margin-right: 20px;"> 
+	                    <button type="button" class="layui-btn layui-btn-danger" >
+                    		<i class="layui-icon" >&#xe67c;</i>创作中心
+               			</button>
+               			<dl class="layui-nav-child">
+                            <dd><a href="../article/markdownEdit.html">MarkDown编译器</a></dd>
+                            <dd><a href="../article/ckeditor2.html">富文本编译器</a></dd>
+                            <dd><a href="../article/layedit.html">layEdit编译器</a></dd>
+                        </dl>
+	                </li>
+	                <li class="layui-nav-item" id="userImg"> 
+	                    
+	                </li>
+	
+	                <li class="layui-nav-item" id="userName">
+	                    <a href="javascript:;"></a>
+	                    <dl class="layui-nav-child">
+                            <dd><a href="personalHomePage.html">我的主页</a></dd>
+                            <dd><a href="userMgr.html">个人中心</a></dd>
+                            <dd><a href="data_analysis.html">数据分析</a></dd>
+                        </dl>
+	                </li>
+	
+	                <li class="layui-nav-item">
+	                    <a href="javaScript:void(0)" id="logoutBtn">注销</a>
+	                </li>
+	            </ul>
+	        </div>
+	
+	        <div class="layui-side layui-bg-black">
+	            <div class="layui-side-scroll">
+	                <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+	                <ul class="layui-nav layui-nav-tree" lay-filter="test" id="artTypeUl">
+	                	<li class="layui-nav-item layui-nav-itemed">
+	                        <a data-url="../article/articleList.html?isreg=1" data-title="首页" class="menu layui-this" data-id="-1" data-type="tabAdd">
+	                            	首页
+	                        </a>
+	                    </li>    
+	                </ul>
+	            </div>
+	        </div>
+			
+	        <div class="layui-body">
+	            <!-- 文章列表区域 -->
+	            <div class="layui-tab" lay-filter="tabs" lay-allowClose="true" >
+	            	<ul class="layui-tab-title" ></ul>
+	                <div class="layui-tab-content">
+
+	                </div>
+	            </div>
+	        </div>
+	
+	        <div class="layui-footer">
+	            <!-- 底部固定区域 -->    
+	        </div>
+	    </div>
+    </body>
+        <!-- 只是引入layUI核心js  单模块加载 -->
+    <script src="../plugins/layui/layui.js"></script>
+    <script src="../plugins/layui/layui.all.js"></script>
+    <script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+    <script type="text/javascript" src="../js/common.js" ></script>
+    <script type="text/javascript" src="../js/requestParam.js" ></script>
+    <script src="../plugins/layui/lay/modules/layer.js"></script>
+    <script type="text/javascript">
+    	    	
+        //一般直接写在一个js文件中
+        layui.use(['layer', 'form','jquery','element','upload','flow'], function() {
+            //单模块加载组件
+            var layer = layui.layer;
+            var form = layui.form;
+            var $ = layui.$;
+            var element = layui.element;
+            var upload = layui.upload;
+            var flow = layui.flow;
+
+
+            //用户图像处理
+            var $userInfo = $('#userInfo');
+        	var $userName = $('#userName a:first');
+        	$userName.text(sessionStorage.userNickName);
+        	var $userImg = $('#userImg');
+        	var userImg = sessionStorage.getItem("userImg"); 
+        	if(userImg != null && userImg != ""){
+        		imgPath = cosPath + sessionStorage.getItem("userNameKey") + '/' + userImg;
+        		var $img = $('<img class="layui-nav-img" src="'+ imgPath +'"/>');
+        		
+        		$userImg.append($img);
+        		var $dl = $('<dl class="layui-nav-child">'
+                            +'<dd><a href="javaScript:void(0)" class="uploadBtn">更换图像</a></dd>'
+                        	+'</dl>');
+                $userImg.append($dl);       	
+        	}else{
+        		var $btn = $('<button type="button" class="layui-btn uploadBtn" >'
+                    		+'<i class="layui-icon" >&#xe67c;</i>上传图像'
+               				+'</button>');
+               	$userImg.append($btn);
+        	}
+
+            // 退出
+            $("#logoutBtn").click(function () {
+                layer.confirm('您决定要退出吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    $.ajax({
+                    	type:"get",
+                    	url:localhost+"userCtl/logout",
+                    	success:function(){
+	                    	location.replace("login.html");
+	                    	layer.close(index); //关闭层
+	                    }
+                    });
+                    
+                });
+            });
+
+            //layui中定义的函数
+            var active = {
+                //在这里给active绑定几项事件，后面可通过active调用这些事件
+                tabAdd : function(url, id, title) {
+                    //新增一个Tab项 传入三个参数，分别对应其标题，tab页面的地址，还有一个规定的id，是标签中data-id的属性值
+                    //关于tabAdd的方法所传入的参数可看layui的开发文档中基础方法部分
+                    element.tabAdd('tabs', {
+                        title : title,
+                        content : '<iframe data-frameid="' + id
+                            + '" scrolling="auto" frameborder="0" src="'
+                            + url
+                            + '" style="width:100%;height:99%;"></iframe>',
+                        id : id
+                        //规定好的id
+                    })
+                    CustomRightClick(id); //给tab绑定右击事件
+                    FrameWH(); //计算ifram层的大小
+                },
+                tabChange : function(id) {
+                    //切换到指定Tab项
+                    element.tabChange('tabs', id); //根据传入的id传入到指定的tab项
+                	//刷新iframe
+                    var othis = $('.layui-tab-title').find('>li[lay-id="' + id + '"]'),
+                    index = othis.parent().children('li').index(othis),
+                    parents = othis.parents('.layui-tab').eq(0),
+                    item = parents.children('.layui-tab-content').children('.layui-tab-item'),
+                    src = item.eq(index).find('iframe').attr("src");
+
+                },
+                tabDelete : function(id) {
+                    element.tabDelete("tabs", id);//删除
+                },
+                tabDeleteAll: function (ids) {//删除所有
+                    $.each(ids, function (i,item) {
+                        element.tabDelete("tabs", item); //ids是一个数组，里面存放了多个id，调用tabDelete方法分别删除
+                    })
+                }
+            };
+            
+            // 为菜单添加选项卡按钮
+            $(document).on(
+                'click',
+                '.menu',
+                function() {
+                    var dataid = $(this);
+                    //这时会判断右侧.layui-tab-title属性下的有lay-id属性的li的数目，即已经打开的tab项数目
+                    if ($(".layui-tab-title li[lay-id]").length <= 0) {
+                        //如果比零小，则直接打开新的tab项
+                        active.tabAdd(dataid.attr("data-url"), dataid.attr("data-id"), dataid.attr("data-title"));
+                    } else {
+                        //否则判断该tab项是否以及存在
+                        var isData = false; //初始化一个标志，为false说明未打开该tab项 为true则说明已有
+                        $.each($(".layui-tab-title li[lay-id]"),
+                            function() {
+                                //如果点击左侧菜单栏所传入的id 在右侧tab项中的lay-id属性可以找到，则说明该tab项已经打开
+                                if ($(this).attr("lay-id") == dataid.attr("data-id")) {
+                                    isData = true;
+                                }
+                            })
+                        if (isData == false) {
+                            //标志为false 新增一个tab项
+                            active.tabAdd(dataid.attr("data-url"), dataid.attr("data-id"), dataid.attr("data-title"));
+                        }
+                    }
+                    //最后不管是否新增tab，最后都转到要打开的选项页面上
+                    active.tabChange(dataid.attr("data-id"));
+            	}
+            );
+            
+            function CustomRightClick(id) {
+                //取消右键  rightmenu属性开始是隐藏的 ，当右击的时候显示，左击的时候隐藏
+                $('.layui-tab-title li').on('contextmenu', function () { return false; })
+                $('.layui-tab-title,.layui-tab-title li').click(function () {
+                    $('.rightmenu').hide();
+                });
+                //桌面点击右击 
+                $('.layui-tab-title li').on('contextmenu', function (e) {
+                    var popupmenu = $(".rightmenu");
+                    popupmenu.find("li").attr("data-id",id); //在右键菜单中的标签绑定id属性
+
+                    //判断右侧菜单的位置 
+                    l = ($(document).width() - e.clientX) < popupmenu.width() ? (e.clientX - popupmenu.width()) : e.clientX;
+                    t = ($(document).height() - e.clientY) < popupmenu.height() ? (e.clientY - popupmenu.height()) : e.clientY;
+                    popupmenu.css({ left: l, top: t }).show(); //进行绝对定位
+                    //alert("右键菜单")
+                    return false;
+                });
+            }
+
+            $(".rightmenu li").click(function () {
+
+                //右键菜单中的选项被点击之后，判断type的类型，决定关闭所有还是关闭当前。
+                if ($(this).attr("data-type") == "closethis") {
+                    //如果关闭当前，即根据显示右键菜单时所绑定的id，执行tabDelete
+                    active.tabDelete($(this).attr("data-id"))
+                } else if ($(this).attr("data-type") == "closeall") {
+                    var tabtitle = $(".layui-tab-title li");
+                    var ids = new Array();
+                    $.each(tabtitle, function (i) {
+                        ids[i] = $(this).attr("lay-id");
+                    })
+                    //如果关闭所有 ，即将所有的lay-id放进数组，执行tabDeleteAll
+                    active.tabDeleteAll(ids);
+                }
+
+                $('.rightmenu').hide(); //最后再隐藏右键菜单
+            })
+            
+            
+            function FrameWH() {
+                var h = $(window).height();
+                $("iframe").css("height", h + "px");
+            }
+            
+            
+            $(window).resize(function () {
+                FrameWH();
+            })
+            
+            
+            //动态获取左侧菜单栏
+			$.ajax({
+            	type:"get",
+            	url:localhost + "articleCtl/findArtTypeList",
+            	async:true,
+            	dataType:'json',
+            	success:function(res){
+            		var $artTypeUl = $('#artTypeUl');
+            		for(var i = 0;i<res.length;i++){
+            			var $li = $('<li class="layui-nav-item layui-nav-itemed"></li>');
+            			var $a1 = $('<a data-url="../article/articleList.html?isreg=1&artType='+ res[i].stairName +'" data-title="'+ res[i].stairName  
+            								+'" class="menu" data-id="'+ i
+            								+'" data-type="tabAdd">'
+            								+ res[i].stairName +'</a>');
+            			$li.append($a1);
+            			if(res[i].secId != 0){
+            				var $dl = $('<dl class="layui-nav-child"></dl>');
+            				for(var j = 0;j<res[i].secNameList.length;j++){
+            					var $dd = $('<dd><a data-url="../article/articleList.html?isreg=1&artType='+ res[i].secNameList[j] +'" data-title="'+ res[i].secNameList[j]  
+            								+'" class="menu" data-id="'+ i*10 + j 
+            								+'" data-type="tabAdd">'
+            								+ res[i].secNameList[j] +'</a></dd>');
+            									
+            					$dl.append($dd);	
+            				}
+            				$li.append($dl);
+            			}
+            			$artTypeUl.append($li);
+            		}
+            		layui.element.init(); //一定初始化一次
+            		$(window).resize(function () {
+		                FrameWH();
+		            })
+            	}
+           });
+            
+            //执行实例，文件上传
+            var uploadInst = upload.render({
+                elem: '.uploadBtn' //绑定上传图片按钮
+                ,url: localhost+'fileCtl/uploadUserImg?id='+sessionStorage.getItem("userId")+'&userName='+sessionStorage.getItem("userNameKey") 
+                ,accept: 'images'  //允许上传的文件类型
+                ,acceptMime: 'image/*'
+                ,xhrFields:{withCredentials:true}
+                ,crossDomain:true
+                ,done: function(res){
+                    //上传完毕回调
+                    if(res.code == 0){
+                        layer.msg("上传成功",{icon:1},function () {
+                        	sessionStorage.setItem("userImg",res.userImg);
+                            location.reload();
+                        });
+                    }else{
+                        layer.msg("上传失败",{icon:2});
+                    }
+                }
+            });
+            
+            
+            var artType = request.QueryString("artType");
+            var userId = request.QueryString("userId");
+            var $artTypeLi = $('#artTypeUl > li:first > a');
+            var artName = request.QueryString("artName");
+            if(artName != null && artName != ''){
+            	$artTypeLi.attr("data-url","../article/articleList.html?isreg=1&artName="+artName);
+            }else{
+            	$artTypeLi.attr("data-url","../article/articleList.html?isreg=1");
+            }
+            $(document).ready(function(){
+            	$artTypeLi.trigger("click");
+            })
+
+            $('#searchBtn').click(function(){
+            	artName = $('#search').val();
+//          	console.log(artName);
+//          	console.log(window.location.href+'?artName='+artName);
+//				console.log(window.location.pathname);
+//          	window.location.pathname+'?artName='+artName;
+            	window.location.href=window.location.pathname+'?artName='+artName;
+            	
+            });
+           
+            
+            //全局控制 项目logo 和底部区域
+			$('.layui-logo').text(logo);
+			var $a = $('<a href="javascript:;">'+ footer +'</a>'); 
+			var $img = $('<img src="../img/code.png" />');
+			$a.click(function(){
+				layer.open({
+					type: 2,
+					offset: 'auto',
+					title:'二维码',
+					area: ['530px', '480px'],
+					resize :true,
+					content: 'QRCode.html' //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+				});
+			})
+            $('.layui-footer').append($a);
+            
+        });
+        
+
+
+    </script>
+</html>
+

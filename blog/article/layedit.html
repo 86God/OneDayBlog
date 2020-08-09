@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>富文本编译器</title>
+		<meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" href="../plugins/layui/css/layui.css" /> 
+        
+	</head>
+	<body>
+		<div class="layui-fluid" style="margin-top:20px ;">
+		    <div class="layui-card">
+		            <div class="layui-form-item layui-row">
+		                <div class="layui-inline layui-col-lg1 layui-col-md1">
+		                    <a class="layui-btn" href="../user/loginSuccess.html">
+		                    	<i class="layui-icon layui-icon-return"></i>
+		                    	主页</a>
+		                </div>
+		                <div class="layui-inline layui-col-lg8 layui-col-md8">
+                          	<input type="text" name="title" required  lay-verify="required"  id="title"
+                          		placeholder="请输入标题" autocomplete="off" class="layui-input" >
+		                </div>
+		                <div class="layui-inline layui-col-lg1 layui-col-md1">
+                          	<button class="layui-btn layui-btn-normal" id="draftBtn">保存为草稿</button>
+		                </div>
+		                <div class="layui-inline layui-col-lg1 layui-col-md1">
+                          	<button class="layui-btn layui-btn-danger" id="publishBtn">发表文章</button>
+		                </div>
+		            </div>
+		    </div>
+		    <!-- 隐藏标签 用来保存文章Id -->
+		    <input type="hidden" id="artId" />
+		    <textarea id="editor" style="display: none;"></textarea>
+		</div>	 
+		
+		
+	</body>
+
+	<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+	<script type="text/javascript" src="../js/common.js" ></script>
+	<script type="text/javascript" src="../js/requestParam.js" ></script>
+	<script src="../plugins/layui/layui.js"></script>
+</script>   
+	
+	<script type="text/javascript">
+		//一般直接写在一个js文件中
+	    layui.use(['layer', 'laypage', 'table', 'jquery','form','layedit'], function () {
+	        //单模块加载组件
+	        var layer = layui.layer     //弹层
+	            , table = layui.table        //表格
+	            , form = layui.form
+	            , $ = layui.$                //jQuery
+	        	, layedit = layui.layedit		//富文本编译器
+	        	
+	        
+	        //初始化编译器
+	        layedit.set({
+			  	uploadImage: {
+				    url: localhost+'fileCtl/uploadImgByLayEdit' //接口url
+				    ,type: 'post' //默认post
+				}
+			});
+	        
+	        var index = layedit.build('editor', {
+			  height: 1800 //设置编辑器高度
+			});	
+			
+
+			var $artId = $('#artId');
+			var artId = request.QueryString('artId');
+			var permTypeRes = 2;
+			
+			$artId.attr('value',request.QueryString('artId'));
+							
+			//判断文章是否已经存在id了，若有，说明是编辑文章，通过id将原文章加载，只需要将文章内容进行修改，若没有，再进行保存。
+			var urlReq = '';
+			
+			
+			
+			if(artId == "" || artId == null){
+				urlReq =localhost+'articleCtl/saveArt';
+			}else{
+				urlReq =localhost+'articleCtl/updateArt?id='+artId;
+				$.ajax({
+					type:"post",
+					url:localhost+'articleCtl/findArtById?artId='+artId+'&userId='+sessionStorage.getItem("userId"),
+					data: {
+						artId:artId
+					},
+				    dataType : "json",
+					async:true,
+					success:function(res){
+						$('#title').val(res.title);
+						layedit.setContent(index, res.content,false);
+						permTypeRes = res.perm_type;
+						
+					}
+				});	
+			}
+			
+			//发布文章
+			$('#publishBtn').on('click',function(){
+				//文章标题
+				var title = $('#title').val();
+				//文章html文本
+				var content = layedit.getContent(index);
+				//文章html文本
+				var htmlContent = layedit.getContent(index);
+				//文章普通文本
+				var text = layedit.getText(index)
+				
+				
+				if(title == "" || title == null){
+					layer.msg('标题不能为空',{icon:2,time:1000});
+					return false;
+				}
+
+				$.ajax({
+					type:"post",
+					url:urlReq,
+					data: {
+						id:$artId.attr('value'),
+						userId:sessionStorage.getItem("userId"),
+						title:title,
+						content:content,
+						permType:permTypeRes,
+						text:text,
+						editorType:2,
+						isreg:0
+					},
+				    dataType : "json",
+					async:true,
+					success:function(res){
+						if(res != 0){
+							$artId.attr('value',res); 
+							layer.open({
+			                    type: 2,
+			                    title: ['发布文章', 'font-size:18px;'],
+			                    offset: '10px',
+			                    area: ['600px', '700px'],
+			                    content: 'publishArticle.html?artId='+res,
+		                      	end: function(index, layero){
+								    $.ajax({
+										type:"post",
+										url:localhost+'articleCtl/findArtById?artId='+artId+'&userId='+sessionStorage.getItem("userId"),
+										data: {
+											artId:artId
+										},
+									    dataType : "json",
+										async:true,
+										success:function(res){	
+											permTypeRes = res.perm_type;
+											console.log(permTypeRes);
+											window.location.href='article_detail.html?artId='+res;
+										}
+									});	
+							  	}
+			               
+	                		});
+						}							
+					}
+				});			
+			})
+			
+			//保存文章草稿
+			$('#draftBtn').on('click',function(){
+				//文章标题
+				var title = $('#title').val();
+				//文章html文本
+				var content = layedit.getContent(index);
+				//文章html文本
+				var htmlContent = layedit.getContent(index);
+				//文章普通文本
+				var text = layedit.getText(index)
+				
+				if(title == "" || title == null){
+					
+					layer.msg('标题不能为空',{icon:2,time:1000});
+					return false;
+				}
+				
+				$.ajax({
+					type:"post",
+					url:urlReq,
+					data: {
+						id:$artId.attr('value'),
+						userId:sessionStorage.getItem("userId"),
+						title:title,
+						content:content,
+						permType:permTypeRes,
+						text:text,
+						editorType:2,
+						isreg:0
+					},
+				    dataType : "json",
+					async:true,
+					success:function(res){
+						$artId.attr('value',res); 
+						layer.msg('保存草稿成功',{icon:1,time:1000});
+						window.location.href='article_detail.html?artId='+res;
+					}
+				});			
+			});
+			
+			
+  
+		});
+		
+
+	</script>
+</html>

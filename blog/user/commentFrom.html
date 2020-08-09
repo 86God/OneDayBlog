@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>评论管理</title>
+		<meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" href="../plugins/layui/css/layui.css" /> 
+	</head>
+	<body>
+		<div class="layui-fluid">
+		    <div class="layui-card">
+		        <!--数据表格的载体-->
+		        <table class="layui-hide" id="tableId" lay-filter="table"></table>
+		    </div>
+		
+		</div>
+	</body>
+	<script type="text/javascript" src="../js/common.js" ></script>
+	<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+	<script src="../plugins/layui/layui.js"></script>
+	
+	<script type="text/html" id="barDemo">
+	    <a class="layui-btn layui-btn-xs" lay-event="edit">查看</a>
+	    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+	</script>
+	
+	<script type="text/javascript">	
+		
+    //一般直接写在一个js文件中
+    layui.use(['layer', 'laypage', 'table', 'jquery','form'], function () {
+        //单模块加载组件
+        var layer = layui.layer     //弹层
+            , table = layui.table        //表格
+            , form = layui.form
+            , $ = layui.$                //jQuery
+            , laypage = layui.laypage    //分页
+
+
+        
+
+        //监听行工具事件
+        table.on('tool(table)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            var data = obj.data //获得当前行数据
+                , layEvent = obj.event; //获得 lay-event 对应的值
+                
+			if (layEvent === 'del') {
+                layer.confirm('真的删除行么', function (index) {
+                    obj.del(); //删除对应行（tr）的DOM结构
+                    layer.close(index);
+                    //向服务端发送删除指令
+                    //异步提交
+                    $.post(localhost +"articleCtl/deleteById",{idList:data.artId} , function (res) {
+                        if (res.code == 0) {
+                            layer.msg('删除成功', {icon: 1, time: 1000});
+                            commonFun.reloadTable();
+                        } else {
+                            layer.msg('删除失败', {icon: 2, time: 1000})
+                        }
+                    },"json");
+                    return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+                });
+            } else if (layEvent === 'edit') {
+                // layer.msg('编辑操作');
+				if(data.artEditorType == 0){
+					window.parent.location.href='markdownEdit.html?artId='+data.artId;
+				}else if(data.artEditorType == 1){
+					window.parent.location.href='ckeditor2.html?artId='+data.artId;							
+				}else if(data.artEditorType == 2){
+					window.parent.location.href='layedit.html?artId='+data.artId;
+				}else{
+					
+				}
+			}	
+        });
+
+
+        //异步刷新更新列表
+        var commonFun = {
+            //自定义函数
+            reloadTable: function () {
+                table.reload('tableId', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                }); //只重载数据
+            }
+        }
+
+        //赋给window对象，tools是自定义名称，相当于给浏览器定义了一个全局变量
+        window.tools = commonFun;
+
+
+        //执行一个 table 实例
+        table.render({
+            elem: '#tableId'
+            , toolbar: false //让工具栏左侧显示默认的内置模板
+            , url: localhost +'userCtl/findCommentListByPage?userId='+sessionStorage.getItem("userId") //post方式异步请求  数据接口
+            , title: '文章列表'
+            , page: true //开启分页
+            , limit: 10 //每页显示的条数
+            , limits: [2, 4, 6, 8, 10, 20, 50, 100]   //每页条数的选择项
+            , cols: [[ //表头
+                {type: 'numbers', fixed: 'left'}
+                 , {field: 'id', title: '评论ID',  sort: true}
+                , {field: 'artId', title: '文章ID',  sort: true}
+                , {field: 'artTitle', title: '文章标题',  sort: true}
+                , {field: 'userId', title: '评论人ID',  sort: true}
+                , {field: 'nickname', title: '评论人昵称',  sort: true}
+                , {field: 'content', title: '评论内容',  sort: true}
+                , {field: 'comment_time', title: '评论时间',  sort: true
+                	,templet:function(d){
+                		var time = new Date(d.comment_time).getTime()- 8 * 60 * 60 * 1000;
+						var date = new Date(time).toLocaleString();
+                        return date;
+                	}}
+                , {fixed: 'right',  align: 'center',title: '操作', toolbar: '#barDemo',width:"10%"}
+            ]]
+        });
+
+
+        //分页
+        laypage.render({
+            elem: 'pageDemo' //分页容器的id
+            , count: 100 //总条数
+            , skin: '#1E9FFF' //自定义选中色值
+            //,skip: true //开启跳页
+            , jump: function (obj, first) {
+                if (!first) {
+                    layer.msg('第' + obj.curr + '页', {offset: 'b'});
+                }
+            }
+        });
+    });
+
+</script>
+<style>
+	.layui-table-page{
+		text-align: center;
+	} 
+</style>
+</html>

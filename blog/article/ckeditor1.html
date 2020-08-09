@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>富文本编译器</title>
+		<script src="../plugins/ckeditor/ckeditor.js"></script>
+		<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+		<meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" href="../plugins/layui/css/layui.css" /> 
+	</head>
+	<body>
+		<div class="layui-fluid">
+		    <div class="layui-card">
+
+		            <div class="layui-form-item layui-row">
+		                <div class="layui-inline layui-col-lg1 layui-col-md1">
+		                    <a class="layui-btn" href="../user/loginSuccess.html">
+		                    	<i class="layui-icon layui-icon-return"></i>
+		                    	主页</a>
+		                </div>
+		                <div class="layui-inline layui-col-lg8 layui-col-md8">
+                          	<input type="text" name="title" required  lay-verify="required" id="title"
+                          		placeholder="请输入标题" autocomplete="off" class="layui-input" >
+		                </div>
+		                <div class="layui-inline layui-col-lg1 layui-col-md1">
+                          	<button class="layui-btn layui-btn-normal">保存为草稿</button>
+		                </div>
+		                <div class="layui-inline layui-col-lg1 layui-col-md1">
+                          	<button class="layui-btn layui-btn-danger" id="publishBtn">发表文章</button>
+		                </div>
+		            </div>
+
+		    </div>
+		    <div class="layui-card" id="editor" style="height: 1000px;">
+			    <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
+			    <textarea class="ckeditor" id="content" name="content"></textarea>
+			</div>
+		</div>	
+	</body>
+	
+	<script>
+		$(function(){
+			var $content = $('#content');
+			var $title = $('#title');
+			$('#publishBtn').on('click',function(){
+				//获取标题
+				var title = $title.val(); 
+				//获取html
+				var val = CKEDITOR.instances.content.getData();
+				//取得纯文本    
+				var text=CKEDITOR.instances.content.document.getBody().getText(); 
+
+			})
+			
+		})
+	</script>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>个人主页</title>
+		<meta name="renderer" content="webkit">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<link rel="stylesheet" href="../plugins/layuiadmin/layui/css/layui.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/admin.css" media="all">
+		<link rel="stylesheet" href="../plugins/layuiadmin/style/template.css" media="all">
+	</head>
+
+	<body>
+		<div class="layui-fluid layadmin-homepage-fluid">
+			<div class="layui-row layui-col-space20 layadmin-homepage-list-imgtxt">
+				<div class="grid-demo" id="userListDiv">
+					<!-- 文章列表 -->		
+					
+				</div>
+			</div>
+		</div>
+
+		<script src="../plugins/layuiadmin/layui/layui.js"></script>
+		<script type="text/javascript" src="../js/common.js" ></script>
+		<script src="../js/requestParam.js"></script>
+		<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+		<script>
+			layui.use(['flow','layer', 'jquery'], function(){
+					var $ = layui.jquery; //不用额外加载jQuery，flow模块本身是有依赖jQuery的，直接用即可。
+					var layer = layui.layer;
+				    var flow = layui.flow;
+					var action = request.QueryString("action");
+				    
+				  	flow.load({
+					   	elem: '#userListDiv' //指定列表容器
+					    ,done: function(page, next){ //到达临界点（默认滚动触发），触发下一页
+					      	var lis = [];
+						    //以jQuery的Ajax请求为例，请求下一页数据（注意：page是从2开始返回）
+						    $.get(localhost+'userCtl/findUserListByPage?pageNum='+page +'&limit=5'+'&userId='+sessionStorage.getItem("userId")+'&action='+action, function(res){
+					       
+					        //假设你的列表返回在data集合中
+					        layui.each(res.data, function(index, item){
+					     		console.log(res.data);
+					        	var $div1 = $('<div class="panel-body layadmin-homepage-shadow" style="padding-bottom: 15px;"></div>')
+					        	var $img = $('<a href="../user/personalHomePage.html?userId='+ item.id +'" class="media-left"><img src="'+ cosPath + item.user_name +'//'+ item.img  +'" height="46px" width="46px"></a>');
+					        
+					        	$div1.append($img);
+					        	var $div2 = $('<div class="media-body"></div>');
+					        	var $div3 = $('<div class="pad-btm" style="padding-bottom: 0; float: left;"></div>');
+					        	var $p1 = $('<p class="fontColor"><a href="../user/personalHomePage.html?userId='+ item.id +'">'+ item.nickname +'</a></p>');
+					        	var $p2 = $('<p class="min-font">'+ item.identity +'</p>');
+					        	
+					        	var $div4 = $('<div class="pad-btm" id="div4'+index+'" style="padding-bottom: 0; float: right;"></div>');
+					        	var $a = $('<a href="javascript:;" class="layui-btn layui-btn-primary">已关注</a>');
+					        	      	
+					        	$div3.append($p1);
+					        	$div3.append($p2);
+					        	
+					        	$div2.append($div3);
+					        	$div2.append($div4);
+					        	$div1.append($div2);
+					        	
+					          	lis.push($div1.get(0).outerHTML);
+					        	//判断是否已经关注
+								$.ajax({
+									type:"get",
+									url:localhost+'userCtl/ifFocus?userId='+item.id+'&focus='+sessionStorage.getItem("userId"),
+									async:true,
+									dataType:'json',
+									success:function(res){
+										if(res.flag == 0){
+											console.log("已经关注了");
+											$a = $('<a href="javascript:;" class="layui-btn layui-btn-primary">已关注</a>');
+											
+										}else{
+											console.log("还没有关注");
+											$a = $('<a href="javascript:;" class="layui-btn layui-btn-normal"><i class="layui-icon layui-icon-addition"></i> 关注</a>');
+										}
+										
+										console.log($a.text());
+										$a.click(function(){
+											if($a.text() == ' 关注'){
+												$.ajax({
+													type:"get",
+													url:localhost+'userCtl/addContact?userId='+item.id+'&focus='+sessionStorage.getItem("userId"),
+													async:true,
+													dataType:'json',
+													success:function(res){
+														location.reload();
+													}
+												});
+											}	
+											else{
+												$.ajax({
+													type:"get",
+													url:localhost+'userCtl/removeContact?userId='+item.id+'&focus='+sessionStorage.getItem("userId"),
+													async:true,
+													dataType:'json',
+													success:function(res){
+														location.reload();
+													}
+												});
+											}
+										});
+										$('#div4'+index).append($a);  
+									}
+								});
+								
+								console.log($a);
+					        	
+					          	
+					        }); 
+					        
+					        //执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+					        //pages为Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+					        next(lis.join(''), page < res.pages);    
+					      });
+					    }
+					});
+					
+			});
+		</script>
+	</body>
+
+</html>

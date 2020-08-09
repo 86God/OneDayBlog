@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>专栏管理</title>
+		<meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" href="../plugins/layui/css/layui.css" /> 
+	</head>
+	<body>
+		<div class="layui-fluid">
+		    <div class="layui-card">
+		        <!--数据表格的载体-->
+		        <table class="layui-hide" id="tableId" lay-filter="table"></table>
+		    </div>
+		
+		</div>
+	</body>
+	<script type="text/javascript" src="../js/common.js" ></script>
+	<script type="text/javascript" src="../js/jQuery3.5.1.js" ></script>
+	<script src="../plugins/layui/layui.js"></script>
+	
+	<script type="text/html" id="barDemo">
+	    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+	    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+	</script>
+	
+	<script type="text/javascript">	
+		
+    //一般直接写在一个js文件中
+    layui.use(['layer', 'laypage', 'table', 'jquery','form'], function () {
+        //单模块加载组件
+        var layer = layui.layer     //弹层
+            , table = layui.table        //表格
+            , form = layui.form
+            , $ = layui.$                //jQuery
+            , laypage = layui.laypage    //分页
+
+
+        //监听头工具栏事件
+        table.on('toolbar(table)', function (obj) {
+            var checkStatus = table.checkStatus(obj.config.id)
+                , data = checkStatus.data; //获取选中的数据
+
+            switch (obj.event) {
+                case 'add':
+                    layer.open({
+                        type: 2,
+                        title: ['添加专栏', 'font-size:18px;'],
+                        offset: '10px',
+                        area: ['450px', '300px'],
+                        content: 'addSpecol.html' //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no']
+                    });
+                    break;
+                case 'update':
+                    if (data.length === 0) {
+                        layer.msg('请选择一行');
+                    } else if (data.length > 1) {
+                        layer.msg('只能同时编辑一个');
+                    } else {
+                        // layer.alert('编辑 [id]：'+ checkStatus.data[0].id);
+                        layer.open({
+		                    type: 2,
+		                    title: ['编辑专栏', 'font-size:18px;'],
+		                    offset: '10px',
+		                    area: ['450px', '300px'],
+		                    content: 'editSpecol.html?specolId=' + data[0].id
+		                });
+                    }
+                    break;
+                case 'delete':
+                    if (data.length === 0) {
+                        layer.msg('请选择一行');
+                    } else {
+                        // layer.msg('删除');
+                        layer.confirm('真的删除这' + data.length + '行么', function (index) {
+                            var idList = "";
+                            for (var i in data) {
+                                idList = idList + data[i].id + ",";
+                            }
+
+                            //向服务端发送删除指令
+                            //异步提交
+                            $.post(localhost+'specolCtl/batchDel',
+                                {idList: idList}, function (res) {
+                                    if (res.code == 0) {
+                                        layer.msg('删除成功', {icon: 1, time: 1000});
+                                        commonFun.reloadTable();
+                                    } else {
+                                        layer.msg('删除失败', {icon: 2, time: 1000})
+                                    }
+                                },'json');
+
+                            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+                        });
+                    }
+                    break;
+            }
+            ;
+        });
+
+        //监听行工具事件
+        table.on('tool(table)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            var data = obj.data //获得当前行数据
+                , layEvent = obj.event; //获得 lay-event 对应的值
+                
+			if (layEvent === 'del') {
+                layer.confirm('真的删除行么', function (index) {
+                    obj.del(); //删除对应行（tr）的DOM结构
+                    layer.close(index);
+                    //向服务端发送删除指令
+                    //异步提交
+                    $.post(localhost +"specolCtl/batchDel",{idList:data.id} , function (res) {
+                        if (res.code == 0) {
+                            layer.msg('删除成功', {icon: 1, time: 1000});
+                            commonFun.reloadTable();
+                        } else {
+                            layer.msg('删除失败', {icon: 2, time: 1000})
+                        }
+                    },"json");
+                    return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+                });
+            } else if (layEvent === 'edit') {
+                // layer.msg('编辑操作');
+                layer.open({
+                    type: 2,
+                    title: ['编辑专栏', 'font-size:18px;'],
+                    offset: '10px',
+                    area: ['450px', '300px'],
+                    content: 'editSpecol.html?specolId=' + data.id
+                });
+            }
+        });
+
+
+        //异步刷新更新列表
+        var commonFun = {
+            //自定义函数
+            reloadTable: function () {
+                table.reload('tableId', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                }); //只重载数据
+            }
+        }
+
+        //赋给window对象，tools是自定义名称，相当于给浏览器定义了一个全局变量
+        window.tools = commonFun;
+
+
+        //执行一个 table 实例
+        table.render({
+            elem: '#tableId'
+            , toolbar: 'default' //让工具栏左侧显示默认的内置模板
+            , url: localhost +'specolCtl/findSpecolInfoList?userId='+sessionStorage.getItem("userId") //post方式异步请求  数据接口
+            , title: '专栏列表'
+            , page: true //开启分页
+            , limit: 10 //每页显示的条数
+            , limits: [2, 4, 6, 8, 10, 20, 50, 100]   //每页条数的选择项
+            , cols: [[ //表头
+                {type: 'numbers', fixed: 'left'}
+                , {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', title: 'ID',  sort: true}
+                , {field: 'spe_col', title: '专栏名',  sort: true}
+                , {field: 'create_time', title: '创建时间',  sort: true}
+                , {field: 'introduction', title: '简介',  sort: true}
+                 , {field: 'artNum', title: '文章数',  sort: true}
+                , {field: 'likeNum', title: '点赞',  sort: true}
+                , {field: 'collectNum', title: '收藏',  sort: true}
+                , {field: 'viewNum', title: '访问量',  sort: true}
+                , {field: 'commentNum', title: '评论量',  sort: true}
+                , {fixed: 'right',  align: 'center',title: '操作', toolbar: '#barDemo', unresize: true}
+            ]]
+        });
+
+
+        //分页
+        laypage.render({
+            elem: 'pageDemo' //分页容器的id
+            , count: 100 //总条数
+            , skin: '#1E9FFF' //自定义选中色值
+            //,skip: true //开启跳页
+            , jump: function (obj, first) {
+                if (!first) {
+                    layer.msg('第' + obj.curr + '页', {offset: 'b'});
+                }
+            }
+        });
+    });
+
+</script>
+<style>
+	.layui-table-page{
+		text-align: center;
+	} 
+</style>
+</html>
